@@ -68,11 +68,13 @@ While VoDo.txt follows the `todo.txt` standard, it adds two tags to handle repea
 ### 1. Recurrence (`r:`)
 The rule for recurrence is simple: **Where is the letter?**
 
-| Syntax | Meaning | Example | Read as... |
-| :--- | :--- | :--- | :--- |
-| **Letter Last** | Every X units | `r:03w` | "Recur every 3 weeks" |
-| **Letter First** | On a specific day | `r:w02` | "Weekly on the 2nd day (Monday)" |
-| **Annual** | Every year | `r:y0304` | "Every March 4th" |
+| Syntax | Meaning | Usable Letters | Example | Read as... |
+| :--- | :--- | :--- | :--- | :--- |
+| **Letter First** | On a specific day | W, M | `r:w02` | "Weekly on the 2nd day (Monday)" |
+| **Letter Last** | Every X units | D, W, M, Y | `r:03w` | "Recur every 3 weeks" |
+| **Annual** | Every year | Y | `r:y0304` | "Every March 4th" |
+
+> **Formatting**: In the recurrence string, the numeric part is always **two digits** (e.g., `01`, `03`, `15`), except when performing a yearly recurrence on a specific date (`Annual`), which requires **four digits** (MMDD format).
 
 > NOTE: Recurrence days do not shift. If you have `r:w02` (Monday) and postpone the task to Tuesday, the *next* occurrence will still correctly fall on a Monday.
 
