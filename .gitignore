@@ -1,0 +1,28 @@
+# Built variants
+**/build/
+build/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Local configuration
+local.properties
+keystore.properties
+
+# Gradle
+.gradle/
+
+# Log files
+*.log
+
+# Other
+.DS_Store
+/captures
+*.hprof
+.artifacts/
+
+# Specific Release folders
+app/release/
