@@ -50,7 +50,7 @@ Automatically provides shortcuts for **Links**, **Emails**, and **Phone Numbers*
 
 ## Interaction & Gestures
 
-![Main Menu Legend](./VoDotxt_main_legend.jpg)
+![Main Menu Legend](VoDotxt_main_legend.jpg)
 
 ### Main Menu Button Legend (Left to Right)
 1. **Settings**: Configure app behavior, themes, and file locations.
@@ -61,7 +61,7 @@ Automatically provides shortcuts for **Links**, **Emails**, and **Phone Numbers*
 
 ---
 
-![Selection Menu Legend](./VoDtxt_select_legend.jpg)
+![Selection Menu Legend](VoDtxt_select_legend.jpg)
 
 ### Selection Mode Button Legend (Left to Right)
 *Selection mode is entered by long-pressing a task.*
