@@ -27,6 +27,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.Label
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -43,6 +44,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.LayoutDirection
@@ -115,6 +117,7 @@ fun TodoScreen(
     var selectionMode by rememberSaveable { mutableStateOf(value = false) }
     var selectedIds by remember { mutableStateOf(setOf<String>()) }
     var showBulkPriorityDialog by rememberSaveable { mutableStateOf(value = false) }
+    var showBulkTagDialog by rememberSaveable { mutableStateOf(value = false) }
     var showBulkDatePicker by rememberSaveable { mutableStateOf(value = false) }
     var showDeleteConfirmation by rememberSaveable { mutableStateOf(value = false) }
     var archivedCount by remember { mutableIntStateOf(0) }
@@ -315,6 +318,21 @@ fun TodoScreen(
                                             },
                                             style = MaterialTheme.typography.titleMedium
                                         )
+                                        if (selectionMode) {
+                                            IconButton(
+                                                onClick = { 
+                                                    selectionMode = false
+                                                    selectedIds = emptySet()
+                                                },
+                                                modifier = Modifier.size(24.dp).padding(start = 4.dp)
+                                            ) {
+                                                Icon(
+                                                    Icons.Default.Close,
+                                                    contentDescription = "Exit Selection",
+                                                    modifier = Modifier.size(16.dp)
+                                                )
+                                            }
+                                        }
                                         if (activeFilterName != null && !selectionMode) {
                                             IconButton(
                                                 onClick = { viewModel.setActiveFilter(null) },
@@ -383,11 +401,8 @@ fun TodoScreen(
                                         IconButton(onClick = { showBulkDatePicker = true }) {
                                             Icon(Icons.Default.CalendarMonth, contentDescription = "Bulk Change Date")
                                         }
-                                        IconButton(onClick = { 
-                                            selectionMode = false
-                                            selectedIds = emptySet()
-                                        }) {
-                                            Icon(Icons.Default.Close, contentDescription = "Exit Selection")
+                                        IconButton(onClick = { showBulkTagDialog = true }) {
+                                            Icon(Icons.AutoMirrored.Filled.Label, contentDescription = "Bulk Contexts/Projects")
                                         }
                                         IconButton(onClick = { 
                                             viewModel.toggleTodosCompletion(selectedIds)
@@ -842,6 +857,21 @@ fun TodoScreen(
                 TextButton(onClick = { showBulkPriorityDialog = false }) {
                     Text("Cancel")
                 }
+            }
+        )
+    }
+
+    if (showBulkTagDialog) {
+        BulkTagDialog(
+            selectedTodoItems = todos.filter { selectedIds.contains(it.id) },
+            allProjects = allProjects,
+            allContexts = allContexts,
+            onDismiss = { showBulkTagDialog = false },
+            onConfirm = { contextsToAdd, contextsToRemove, projectsToAdd, projectsToRemove ->
+                viewModel.updateTodosTags(selectedIds, contextsToAdd, contextsToRemove, projectsToAdd, projectsToRemove)
+                showBulkTagDialog = false
+                selectionMode = false
+                selectedIds = emptySet()
             }
         )
     }
@@ -1925,9 +1955,33 @@ fun AddEditTodoDialog(
                 TextField(
                     value = rawLineValue,
                     onValueChange = {
-                        rawLineValue = it
+                        var newText = it.text
+                        val selection = it.selection
+                        
+                        // "Voodoo" Natural Language Parsing with Snap behavior
+                        // We check for "due:word " or "due:word" at the end of input
+                        val match = Regex("""due:([a-zA-Z]+)(\s|$)""").find(newText)
+                        var updatedValue = it
+                        
+                        if (match != null) {
+                            val word = match.groupValues[1]
+                            val snappedDate = TodoParser.parseNaturalLanguageDate(word)
+                            if (snappedDate != null) {
+                                val replacement = "due:$snappedDate${match.groupValues[2]}"
+                                val snappedText = newText.replaceRange(match.range, replacement)
+                                // Adjust selection if the replacement changed the text length
+                                val diff = snappedText.length - newText.length
+                                updatedValue = it.copy(
+                                    text = snappedText,
+                                    selection = TextRange(selection.start + diff, selection.end + diff)
+                                )
+                                newText = snappedText
+                            }
+                        }
+
+                        rawLineValue = updatedValue
                         isUpdatingFromRaw = true
-                        val parsed = TodoParser.parse(it.text)
+                        val parsed = TodoParser.parse(newText)
                         description = parsed.description
                         selectedPriority = parsed.priority
                         projects = parsed.projects.joinToString(" ")
@@ -2364,12 +2418,152 @@ fun RecurrenceBuilderDialog(
         },
         dismissButton = {
             Row {
-                TextButton(onClick = onClear) {
-                    Text("Clear", color = MaterialTheme.colorScheme.error)
-                }
                 TextButton(onClick = onDismiss) {
                     Text("Cancel")
                 }
+            }
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BulkTagDialog(
+    selectedTodoItems: List<TodoItem>,
+    allProjects: List<String>,
+    allContexts: List<String>,
+    onDismiss: () -> Unit,
+    onConfirm: (contextsToAdd: Set<String>, contextsToRemove: Set<String>, projectsToAdd: Set<String>, projectsToRemove: Set<String>) -> Unit
+) {
+    var newTagText by remember { mutableStateOf("") }
+    
+    // Track the intended state for each tag. 
+    // Initialized based on current presence in selected items.
+    val initialContextStates = allContexts.associateWith { ctx ->
+        val count = selectedTodoItems.count { it.contexts.contains(ctx) }
+        when {
+            count == 0 -> ToggleableState.Off
+            count == selectedTodoItems.size -> ToggleableState.On
+            else -> ToggleableState.Indeterminate
+        }
+    }
+    val initialProjectStates = allProjects.associateWith { proj ->
+        val count = selectedTodoItems.count { it.projects.contains(proj) }
+        when {
+            count == 0 -> ToggleableState.Off
+            count == selectedTodoItems.size -> ToggleableState.On
+            else -> ToggleableState.Indeterminate
+        }
+    }
+
+    val contextStates = remember { mutableStateMapOf<String, ToggleableState>().apply { putAll(initialContextStates) } }
+    val projectStates = remember { mutableStateMapOf<String, ToggleableState>().apply { putAll(initialProjectStates) } }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Bulk Edit Contexts/Projects") },
+        text = {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                // Add New Tag Section
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    TextField(
+                        value = newTagText,
+                        onValueChange = { newTagText = it },
+                        placeholder = { Text("New tag name...") },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    IconButton(onClick = {
+                        if (newTagText.isNotBlank() && !contextStates.containsKey(newTagText)) {
+                            contextStates[newTagText] = ToggleableState.On
+                            newTagText = ""
+                        }
+                    }) {
+                        Text("@", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                    }
+                    IconButton(onClick = {
+                        if (newTagText.isNotBlank() && !projectStates.containsKey(newTagText)) {
+                            projectStates[newTagText] = ToggleableState.On
+                            newTagText = ""
+                        }
+                    }) {
+                        Text("+", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+                
+                Spacer(Modifier.height(16.dp))
+
+                // Scrollable lists
+                Column(modifier = Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())) {
+                    if (contextStates.isNotEmpty()) {
+                        Text("Contexts (@)", style = MaterialTheme.typography.labelLarge)
+                        contextStates.keys.sorted().forEach { ctx ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        contextStates[ctx] = if (contextStates[ctx] == ToggleableState.On) ToggleableState.Off else ToggleableState.On
+                                    }
+                                    .padding(vertical = 4.dp)
+                            ) {
+                                TriStateCheckbox(
+                                    state = contextStates[ctx]!!,
+                                    onClick = {
+                                        contextStates[ctx] = if (contextStates[ctx] == ToggleableState.On) ToggleableState.Off else ToggleableState.On
+                                    }
+                                )
+                                Text(ctx, modifier = Modifier.padding(start = 8.dp))
+                            }
+                        }
+                        Spacer(Modifier.height(16.dp))
+                    }
+
+                    if (projectStates.isNotEmpty()) {
+                        Text("Projects (+)", style = MaterialTheme.typography.labelLarge)
+                        projectStates.keys.sorted().forEach { proj ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        projectStates[proj] = if (projectStates[proj] == ToggleableState.On) ToggleableState.Off else ToggleableState.On
+                                    }
+                                    .padding(vertical = 4.dp)
+                            ) {
+                                TriStateCheckbox(
+                                    state = projectStates[proj]!!,
+                                    onClick = {
+                                        projectStates[proj] = if (projectStates[proj] == ToggleableState.On) ToggleableState.Off else ToggleableState.On
+                                    }
+                                )
+                                Text(proj, modifier = Modifier.padding(start = 8.dp))
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = {
+                val cAdd = contextStates.filter { it.value == ToggleableState.On }.keys
+                val cRemove = initialContextStates.filter { it.value != ToggleableState.Off && contextStates[it.key] == ToggleableState.Off }.keys
+                
+                val pAdd = projectStates.filter { it.value == ToggleableState.On }.keys
+                val pRemove = initialProjectStates.filter { it.value != ToggleableState.Off && projectStates[it.key] == ToggleableState.Off }.keys
+                
+                onConfirm(cAdd, cRemove, pAdd, pRemove)
+            }) {
+                Text("Apply")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
             }
         }
     )

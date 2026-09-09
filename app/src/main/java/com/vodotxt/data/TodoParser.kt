@@ -1,8 +1,10 @@
 package com.vodotxt.data
 
 import com.vodotxt.domain.TodoItem
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
+import java.time.temporal.TemporalAdjusters
 
 object TodoParser {
     private val dateRegex = Regex("""^(\d{4}-\d{2}-\d{2})(?:\s|$)""")
@@ -108,6 +110,24 @@ object TodoParser {
             LocalDate.parse(dateStr)
         } catch (e: DateTimeParseException) {
             null
+        }
+    }
+
+    fun parseNaturalLanguageDate(input: String): LocalDate? {
+        val today = LocalDate.now()
+        val normalized = input.lowercase().trim()
+        
+        return when (normalized) {
+            "today" -> today
+            "tomorrow" -> today.plusDays(1)
+            "monday" -> today.with(TemporalAdjusters.next(DayOfWeek.MONDAY))
+            "tuesday" -> today.with(TemporalAdjusters.next(DayOfWeek.TUESDAY))
+            "wednesday" -> today.with(TemporalAdjusters.next(DayOfWeek.WEDNESDAY))
+            "thursday" -> today.with(TemporalAdjusters.next(DayOfWeek.THURSDAY))
+            "friday" -> today.with(TemporalAdjusters.next(DayOfWeek.FRIDAY))
+            "saturday" -> today.with(TemporalAdjusters.next(DayOfWeek.SATURDAY))
+            "sunday" -> today.with(TemporalAdjusters.next(DayOfWeek.SUNDAY))
+            else -> null
         }
     }
 }

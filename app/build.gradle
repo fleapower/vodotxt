@@ -12,8 +12,9 @@ android {
         applicationId "com.vodotxt"
         minSdk 26
         targetSdk 35
-        versionCode 4
-        versionName "260908.01beta"
+        versionCode 5
+        versionName "260909.01ß"
+        // α, ß
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

@@ -1,6 +1,6 @@
 # VoDo.txt (ˈvü-ˌdü ˈdät ˈtekst)
 
-VoDo.txt was born from the end of development of *SimpleTask* and dissatisfaction with the current alternatives. With the exception of [recurrence](https://github.com/fleapower/vodotxt#the-vodo-extensions-recurrence--last), VoDo.txt uses the standard **[todo.txt](https://github.com/todotxt/todo.txt/blob/master/README.md#todotxt-format-rules)** format with a focus on speed.
+VoDo.txt was born from the end of development of *SimpleTask* and dissatisfaction with the current alternatives. With the exception of [recurrence](https://github.com/fleapower/vodotxt#the-vodo-extensions-recurrence--last), VoDo.txt uses the standard [todo.txt](https://github.com/todotxt/todo.txt/blob/master/README.md#todotxt-format-rules) format with a focus on speed.
 
 ---
 
@@ -29,6 +29,14 @@ Tap the **[+]** button. The **Task Details** dialog will open:
 - **Smart Formatting**: Type naturally. VoDo.txt handles the protocol formatting (priorities, dates, tags) for you.
 - **Creation Date**: If enabled in settings, the current date is added automatically.
 
+#### Natural Language Parsing
+When entering or editing a task, you can use natural language to set due dates. Simply type `due:` followed by a keyword, and it will "snap" into the correct date format:
+- `due:today` -> `due:2026-09-08`
+- `due:tomorrow` -> `due:2026-09-09`
+- `due:monday` (or any day of the week) -> Snaps to the **next** occurrence of that day.
+
+> **Note**: This is a quick-entry feature. The actual file always stores dates in the standard `YYYY-MM-DD` format for compatibility.
+
 ### Editing a Task
 Simply tap any task in the list to open the Details dialog. You can edit the raw text or use the quick-action icons for Priority, Due Date, Recurrence, Context, and Projects.
 
@@ -42,11 +50,32 @@ Automatically provides shortcuts for **Links**, **Emails**, and **Phone Numbers*
 
 ## Interaction & Gestures
 
+![Main Menu Legend](./VoDotxt_main_legend.jpg)
+
+### Main Menu Button Legend (Left to Right)
+1. **Settings**: Configure app behavior, themes, and file locations.
+2. **Completion Filter**: Cycle through showing All tasks, Incomplete only, or Completed only.
+3. **Date Filter**: Cycle through All tasks, Today's tasks, or Tomorrow's tasks.
+4. **Priority Filter**: Cycle through filtering by specific priorities (A, B, C, D) or clear the filter.
+5. **Sort Mode**: Cycle the list order between File Order, Due Date, or Priority.
+
+---
+
+![Selection Menu Legend](./VoDtxt_select_legend.jpg)
+
+### Selection Mode Button Legend (Left to Right)
+*Selection mode is entered by long-pressing a task.*
+1. **Bulk Delete**: Permanently delete all selected tasks.
+2. **Select All**: Select all tasks currently visible in the list.
+3. **Bulk Priority**: Assign or clear the priority for all selected tasks.
+4. **Bulk Change Date**: Set or clear the due date for all selected tasks.
+5. **Bulk Contexts/Projects**: Add or remove tags across all selected tasks.
+6. **Bulk Toggle Complete**: Mark all selected tasks as complete (or incomplete).
+
+---
+
 - **Swipe Right**: Quickly complete or postpone a task (configurable in Settings).
 - **Swipe Left**: Open the **Filter Drawer**.
-- **Long Press**: Enter **Selection Mode**.
-  - Tap multiple tasks to select them.
-  - **Bulk Actions**: Delete, change priority, set due dates, or toggle completion for all selected tasks at once using the icons in the bottom bar. Using "select all" will only select the tasks visible in the current filter view.
 - **Drag and Drop**: In **File Sort** mode, long-press and hold, then drag to physically reorder your tasks.
 
 ---

@@ -481,6 +481,31 @@ class TodoListViewModel(
         }
     }
 
+    fun updateTodosTags(ids: Set<String>, contextsToAdd: Set<String>, contextsToRemove: Set<String>, projectsToAdd: Set<String>, projectsToRemove: Set<String>) {
+        viewModelScope.launch {
+            val current = _todos.value.toMutableList()
+            var changed = false
+            ids.forEach { id ->
+                val index = current.indexOfFirst { it.id == id }
+                if (index != -1) {
+                    val item = current[index]
+                    val newContexts = (item.contexts.toSet() + contextsToAdd - contextsToRemove).toList().sorted()
+                    val newProjects = (item.projects.toSet() + projectsToAdd - projectsToRemove).toList().sorted()
+                    
+                    if (newContexts != item.contexts || newProjects != item.projects) {
+                        val newItem = item.copy(contexts = newContexts, projects = newProjects)
+                        current[index] = newItem.copy(rawLine = TodoParser.toLine(newItem))
+                        changed = true
+                    }
+                }
+            }
+            if (changed) {
+                repository.saveTodos(current, settingsRepository.todoFileUri.value)
+                refreshTodos()
+            }
+        }
+    }
+
     fun toggleTodosCompletion(ids: Set<String>) {
         viewModelScope.launch {
             val current = _todos.value.toMutableList()
