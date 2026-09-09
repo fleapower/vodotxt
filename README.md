@@ -8,16 +8,15 @@ VoDo.txt was born from the end of development of *SimpleTask* and dissatisfactio
 When you first launch VoDo.txt, you'll be greeted by the **Welcome Setup**.
 
 1. **Select Storage Folder**: Click the button to choose a location on your device (e.g., your "Documents" folder).
-2. **Automated Magic**: VoDo.txt will automatically create a `vodo.txt/` subfolder and initialize your `todo.txt` and `done.txt` (archive) files.
+2. **Automated**: VoDo.txt will automatically create a `vodo.txt/` subfolder and initialize your `todo.txt` and `done.txt` (archive) files.
 3. **External Access**: Because these are stored in a standard Android folder, you can open, edit, or sync them with any other app or computer.
 
 ---
 
 ## Google Drive Sync
-Keep your tasks in sync across devices without a middleman.
 - **Enable Sync**: In **Settings**, toggle "Enable Google Drive Sync."
-- **Choose a Folder**: Select the folder on your Drive where you want the files to live.
-- **Conflict Resolution**: If a task is changed on your phone and Drive simultaneously, VoDo.txt will detect the collision, create a backup in your **Conflicts Folder**, and ask you which version you want to keep.
+- **Choose a Folder**: Select the folder on your Drive where you want the files to live. You will be asked which version you want to prioritize on the initial sync.
+- **Conflict Resolution**: If a task is changed on your phone and Drive simultaneously, VoDo.txt will detect the collision, create a backup in your **Conflicts Folder**.
 
 ---
 
@@ -26,11 +25,11 @@ Keep your tasks in sync across devices without a middleman.
 ### Adding a Task
 Tap the **[+]** button. The **Task Details** dialog will open:
 - **Auto-Population**: If you have active filters (like `@work` or `+Project`), the task field is automatically prepopulated with those tags.
-- **Smart Formatting**: Type naturally. VoDo.txt handles the protocol formatting (priorities, dates, tags) for you.
-- **Creation Date**: If enabled in settings, the current date is added automatically.
+- **Smart Formatting**: If you don't remember the format for a particular element of the todo.txt protocol, the app will handle it for you by using the buttons below the Task field.
+- **Creation Date**: If enabled in Settings, the current date is added automatically.
 
 #### Natural Language Parsing
-When entering or editing a task, you can use natural language to set due dates. Simply type `due:` followed by a keyword, and it will "snap" into the correct date format:
+When entering or editing a task, you can use natural language to set due dates. Simply type `due:` followed by a keyword, and it will fill in the correctly formatted date:
 - `due:today` -> `due:2026-09-08`
 - `due:tomorrow` -> `due:2026-09-09`
 - `due:monday` (or any day of the week) -> Snaps to the **next** occurrence of that day.
@@ -40,8 +39,18 @@ When entering or editing a task, you can use natural language to set due dates. 
 ### Editing a Task
 Simply tap any task in the list to open the Details dialog. You can edit the raw text or use the quick-action icons for Priority, Due Date, Recurrence, Context, and Projects.
 
+### Toggling Task Completion
+There are four ways to toggle task completion:
+- **Doubletap**: This is configurable in Settings.
+- **Checkbox**: This can be hidden in Settings.
+- **Swipe Right**: This is configurable in Settings. You can choose to postpone by one day, complete, or do nothing with a right swipe.
+- **Select**: Long press and then tap the checkmark in the bottom menu.
+
 ### Quick Add Shortcut
 Long-press the **VoDo.txt app icon** on your home screen. You can launch a minimalist "Quick Add" popup or place the shortcut directly onto your home screen for one-tap entry.
+
+### Searching
+The magnifying glass in the top right allows you to search the current filter set. If you want to search all tasks, you need to clear the filter first.
 
 ### Quick Action
 Automatically provides shortcuts for **Links**, **Emails**, and **Phone Numbers** found in your tasks.
@@ -50,7 +59,8 @@ Automatically provides shortcuts for **Links**, **Emails**, and **Phone Numbers*
 
 ## Interaction & Gestures
 
-![Main Menu Legend](VoDotxt_main_legend.jpg)
+<!-- ![Main Menu Legend](VoDotxt_main_legend.jpg) -->
+<img src="VoDotxt_main_legend.jpg" alt="Selection Menu Legend" width="500">
 
 ### Main Menu Button Legend (Left to Right)
 1. **Settings**: Configure app behavior, themes, and file locations.
@@ -62,7 +72,8 @@ Automatically provides shortcuts for **Links**, **Emails**, and **Phone Numbers*
 
 ---
 
-![Selection Menu Legend](VoDtxt_select_legend.jpg)
+<!--![Selection Menu Legend](VoDtxt_select_legend.jpg)-->
+<img src="VoDtxt_select_legend.jpg" alt="Selection Menu Legend" width="500">
 
 ### Selection Mode Button Legend (Left to Right)
 *Selection mode is entered by long-pressing a task.*
@@ -89,7 +100,9 @@ The **Filter Drawer** (swipe from left) is the engine of VoDo.txt.
 - **Inversion**: Tap the "Invert" checkbox to see everything *except* the selected tags (e.g., "Show me everything that isn't @work").
 - **Saving Filters**: Create complex filter combinations and save them with a name.
   - **Draft Logic**: When you click "Create New Filter," the dialog is prepopulated with whatever ad-hoc filters you currently have active.
-- **Closing**: Tap the "All Tasks" header or the "Clear" button to return to your full list.
+- **Closing**: Tap the "All Tasks" header or the "x" button next to the filter name while in task list view to clear any filters.
+- **Reordering**: Use the handles to reorder saved filters.
+- **Deleting**: Long-press a filter name to delete it.
 
 ---
 
@@ -110,8 +123,8 @@ The rule for recurrence is simple: **Where is the letter?**
 > NOTE: Recurrence days do not shift. If you have `r:w02` (Monday) and postpone the task to Tuesday, the *next* occurrence will still correctly fall on a Monday.
 
 ### 2. The Last Tag (`last:`)
-Whenever a recurring task is completed, VoDo.txt automatically adds a `last:YYYY-MM-DD` tag. This keeps a record of exactly when you last performed that action. This can be disabled in settings.
-> NOTE: After disabling last tags in settings, existing last tags will be removed as each individual recurring task is completed.
+Whenever a recurring task is completed, VoDo.txt automatically adds a `last:YYYY-MM-DD` tag. This keeps a record of exactly when you last performed that action. This can be disabled in Settings.
+> NOTE: After disabling last tags in Settings, existing last tags will be removed as each individual recurring task is completed.
 
 ---
 
