@@ -12,8 +12,8 @@ android {
         applicationId "com.vodotxt"
         minSdk 26
         targetSdk 35
-        versionCode 5
-        versionName "260909.01ß"
+        versionCode 6
+        versionName "260909.02beta"
         // α, ß
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

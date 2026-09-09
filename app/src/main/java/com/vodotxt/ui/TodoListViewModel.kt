@@ -591,6 +591,7 @@ class TodoListViewModel(
                     // 5. Save URIs to settings
                     settingsRepository.setTodoFileUri(todoFile.uri.toString())
                     settingsRepository.setArchiveFileUri(doneFile.uri.toString())
+                    settingsRepository.setConflictFolderUri(folder.uri.toString())
                     
                     // 6. Refresh
                     refreshTodos()

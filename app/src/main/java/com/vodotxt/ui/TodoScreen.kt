@@ -1811,10 +1811,24 @@ fun AddEditTodoDialog(
         mutableStateOf(initialTodo?.priority ?: currentFilter.selectedPriorities.firstOrNull()) 
     }
     var projects by remember(initialTodo) { 
-        mutableStateOf(initialTodo?.projects?.joinToString(" ") ?: currentFilter.selectedProjects.joinToString(" ")) 
+        val initialProjects = if (initialTodo != null) {
+            initialTodo.projects.joinToString(" ")
+        } else if (!currentFilter.invertProjects) {
+            currentFilter.selectedProjects.joinToString(" ")
+        } else {
+            ""
+        }
+        mutableStateOf(initialProjects) 
     }
     var contexts by remember(initialTodo) { 
-        mutableStateOf(initialTodo?.contexts?.joinToString(" ") ?: currentFilter.selectedContexts.joinToString(" ")) 
+        val initialContexts = if (initialTodo != null) {
+            initialTodo.contexts.joinToString(" ")
+        } else if (!currentFilter.invertContexts) {
+            currentFilter.selectedContexts.joinToString(" ")
+        } else {
+            ""
+        }
+        mutableStateOf(initialContexts) 
     }
     var dueDate by remember(initialTodo) { 
         val filterDate = if (initialTodo == null) {
