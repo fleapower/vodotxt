@@ -54,10 +54,11 @@ Automatically provides shortcuts for **Links**, **Emails**, and **Phone Numbers*
 
 ### Main Menu Button Legend (Left to Right)
 1. **Settings**: Configure app behavior, themes, and file locations.
-2. **Completion Filter**: Cycle through showing All tasks, Incomplete only, or Completed only.
+2. **Status Filter**: Cycle through showing All tasks, Incomplete only, or Completed only.
 3. **Date Filter**: Cycle through All tasks, Today's tasks, or Tomorrow's tasks.
 4. **Priority Filter**: Cycle through filtering by specific priorities (A, B, C, D) or clear the filter.
-5. **Sort Mode**: Cycle the list order between File Order, Due Date, or Priority.
+5. **Sort**: Cycle the list order between File Order, Due Date, or Priority.
+6**Add Task**: Add task in Task Details dialog.
 
 ---
 
@@ -65,12 +66,13 @@ Automatically provides shortcuts for **Links**, **Emails**, and **Phone Numbers*
 
 ### Selection Mode Button Legend (Left to Right)
 *Selection mode is entered by long-pressing a task.*
-1. **Bulk Delete**: Permanently delete all selected tasks.
-2. **Select All**: Select all tasks currently visible in the list.
-3. **Bulk Priority**: Assign or clear the priority for all selected tasks.
-4. **Bulk Change Date**: Set or clear the due date for all selected tasks.
-5. **Bulk Contexts/Projects**: Add or remove tags across all selected tasks.
-6. **Bulk Toggle Complete**: Mark all selected tasks as complete (or incomplete).
+1. **Settings**: Configure app behavior, themes, and file locations.
+2. **Bulk Delete**: Permanently delete all selected tasks.
+3. **Select All**: Select all tasks currently visible in the list.
+4. **Bulk Priority**: Assign or clear the priority for all selected tasks.
+5. **Bulk Change Date**: Set or clear the due date for all selected tasks.
+6. **Bulk Contexts/Projects**: Add or remove tags across all selected tasks.
+7. **Bulk Toggle Complete**: Mark all selected tasks as complete (or incomplete).
 
 ---
 
