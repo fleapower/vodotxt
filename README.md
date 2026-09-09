@@ -58,7 +58,7 @@ Automatically provides shortcuts for **Links**, **Emails**, and **Phone Numbers*
 3. **Date Filter**: Cycle through All tasks, Today's tasks, or Tomorrow's tasks.
 4. **Priority Filter**: Cycle through filtering by specific priorities (A, B, C, D) or clear the filter.
 5. **Sort**: Cycle the list order between File Order, Due Date, or Priority.
-6**Add Task**: Add task in Task Details dialog.
+6. **Add Task**: Add task in Task Details dialog.
 
 ---
 
