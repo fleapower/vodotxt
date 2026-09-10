@@ -1,6 +1,6 @@
 # VoDo.txt (ˈvü-ˌdü ˈdät ˈtekst)
 
-VoDo.txt was born from the end of development of *SimpleTask* and dissatisfaction with the current alternatives. With the exception of [recurrence](https://github.com/fleapower/vodotxt#the-vodo-extensions-recurrence--last), VoDo.txt uses the standard [todo.txt](https://github.com/todotxt/todo.txt/blob/master/README.md#todotxt-format-rules) format with a focus on speed.
+VoDo.txt was born from the end of development of *SimpleTask* and dissatisfaction with the current alternatives. With the exception of [recurrence](https://github.com/fleapower/vodotxt?tab=readme-ov-file#the-vodo-extensions-recurrence--last), VoDo.txt uses the standard [todo.txt](https://github.com/todotxt/todo.txt/blob/master/README.md#todotxt-format-rules) format with a focus on speed.
 
 <kbd><img src="screenshots/VoDo_animated.gif" alt="Selection Menu Legend" width="300"></kdb>
 ---
