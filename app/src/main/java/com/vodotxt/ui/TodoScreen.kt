@@ -38,12 +38,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextDecoration
@@ -123,9 +122,14 @@ fun TodoScreen(
     var archivedCount by remember { mutableIntStateOf(0) }
     var showArchiveSuccess by remember { mutableStateOf(value = false) }
 
-    BackHandler(enabled = selectionMode) {
-        selectionMode = false
-        selectedIds = emptySet()
+    BackHandler(enabled = selectionMode || isSearchVisible) {
+        if (selectionMode) {
+            selectionMode = false
+            selectedIds = emptySet()
+        } else if (isSearchVisible) {
+            viewModel.setSearchQuery("")
+            isSearchVisible = false
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -273,7 +277,7 @@ fun TodoScreen(
                             onToggleInvertProjects = viewModel::setInvertProjects,
                             invertContexts = currentFilter.invertContexts,
                             onToggleInvertContexts = viewModel::setInvertContexts,
-                            onClearAll = viewModel::clearAllFilters,
+                            onClearAll = viewModel::clearAdHocTags,
                         )
                     }
                 }
@@ -534,8 +538,7 @@ fun TodoScreen(
                                     val offsetX = remember { Animatable(0f) }
                                     val scope = rememberCoroutineScope()
                                     
-                                    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-                                    val threshold = with(LocalDensity.current) { (screenWidth / 2).toPx() }
+                                    val threshold = LocalWindowInfo.current.containerSize.width / 2f
 
                                     Box(
                                         modifier = Modifier
@@ -2292,7 +2295,7 @@ fun RecurrenceBuilderDialog(
         title = { Text("Set Recurrence") },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
-                TabRow(selectedTabIndex = selectedTab) {
+                PrimaryTabRow(selectedTabIndex = selectedTab) {
                     Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text("Interval", fontSize = 12.sp) })
                     Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text("Week/Month", fontSize = 12.sp) })
                     Tab(selected = selectedTab == 2, onClick = { selectedTab = 2 }, text = { Text("Annual", fontSize = 12.sp) })
@@ -2432,6 +2435,9 @@ fun RecurrenceBuilderDialog(
         },
         dismissButton = {
             Row {
+                TextButton(onClick = onClear) {
+                    Text("Clear", color = MaterialTheme.colorScheme.error)
+                }
                 TextButton(onClick = onDismiss) {
                     Text("Cancel")
                 }

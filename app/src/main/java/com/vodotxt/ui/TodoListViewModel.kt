@@ -338,8 +338,13 @@ class TodoListViewModel(
         _selectedSavedFilterId.value = null
     }
 
-    fun clearAllFilters() {
-        _currentFilter.value = TodoFilter(name = "", id = "transient")
+    fun clearAdHocTags() {
+        _currentFilter.value = _currentFilter.value.copy(
+            selectedProjects = emptyList(),
+            selectedContexts = emptyList(),
+            invertProjects = false,
+            invertContexts = false
+        )
         _selectedSavedFilterId.value = null
     }
 
