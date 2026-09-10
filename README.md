@@ -2,6 +2,7 @@
 
 VoDo.txt was born from the end of development of *SimpleTask* and dissatisfaction with the current alternatives. With the exception of [recurrence](https://github.com/fleapower/vodotxt#the-vodo-extensions-recurrence--last), VoDo.txt uses the standard [todo.txt](https://github.com/todotxt/todo.txt/blob/master/README.md#todotxt-format-rules) format with a focus on speed.
 
+<kbd><img src="screenshots/VoDo_animated.gif" alt="Selection Menu Legend" width="300"></kdb>
 ---
 
 ## Quick Start: Initial Setup
@@ -60,7 +61,7 @@ Automatically provides shortcuts for **Links**, **Emails**, and **Phone Numbers*
 ## Interaction & Gestures
 
 <!-- ![Main Menu Legend](VoDotxt_main_legend.jpg) -->
-<img src="VoDotxt_main_legend.jpg" alt="Selection Menu Legend" width="500">
+<img src="screenshots/VoDotxt_main_legend.jpg" alt="Selection Menu Legend" width="500">
 
 ### Main Menu Button Legend (Left to Right)
 1. **Settings**: Configure app behavior, themes, and file locations.
@@ -73,7 +74,7 @@ Automatically provides shortcuts for **Links**, **Emails**, and **Phone Numbers*
 ---
 
 <!--![Selection Menu Legend](VoDtxt_select_legend.jpg)-->
-<img src="VoDtxt_select_legend.jpg" alt="Selection Menu Legend" width="500">
+<img src="screenshots/VoDtxt_select_legend.jpg" alt="Selection Menu Legend" width="500">
 
 ### Selection Mode Button Legend (Left to Right)
 *Selection mode is entered by long-pressing a task.*
