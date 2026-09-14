@@ -18,6 +18,7 @@ When you first launch VoDo.txt, you'll be greeted by the **Welcome Setup**.
 - **Enable Sync**: In **Settings**, toggle "Enable Google Drive Sync."
 - **Choose a Folder**: Select the folder on your Drive where you want the files to live. You will be asked which version you want to prioritize on the initial sync.
 - **Conflict Resolution**: If a task is changed on your phone and Drive simultaneously, VoDo.txt will detect the collision, create a backup in your **Conflicts Folder**.
+- **Manual Sync**: You can force a sync by swiping down.
 
 ---
 
@@ -95,7 +96,7 @@ Automatically provides shortcuts for **Links**, **Emails**, and **Phone Numbers*
 ---
 
 ## Filtering
-The **Filter Drawer** (swipe from left) is the engine of VoDo.txt.
+The **Filter Drawer** (swipe left).
 
 - **Ad-hoc Filtering**: Tap any Context (@) or Project (+) to instantly filter your list.
 - **Inversion**: Tap the "Invert" checkbox to see everything *except* the selected tags (e.g., "Show me everything that isn't @work").
