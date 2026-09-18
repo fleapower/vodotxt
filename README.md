@@ -6,18 +6,14 @@ VoDo.txt was born from the end of development of *SimpleTask* and dissatisfactio
 ---
 
 ## Quick Start: Initial Setup
-When you first launch VoDo.txt, you'll be greeted by the **Welcome Setup**.
-
-1. **Select Storage Folder**: Click the button to choose a location on your device (e.g., your "Documents" folder).
-2. **Automated**: VoDo.txt will automatically create a `vodo.txt/` subfolder and initialize your `todo.txt` and `done.txt` (archive) files.
-3. **External Access**: Because these are stored in a standard Android folder, you can open, edit, or sync them with any other app or computer.
+When you first launch VoDo.txt, you'll be given a **Welcome Setup** screen. Click the button to choose a location on your device. VoDo.txt will automatically create a `vodo.txt/` subfolder and initialize your `todo.txt` and `done.txt` (archive) files. If you do not want to use these files, you can specifically select which files you would like to use.
 
 ---
 
 ## Google Drive Sync
 - **Enable Sync**: In **Settings**, toggle "Enable Google Drive Sync."
-- **Choose a Folder**: Select the folder on your Drive where you want the files to live. You will be asked which version you want to prioritize on the initial sync.
-- **Conflict Resolution**: If a task is changed on your phone and Drive simultaneously, VoDo.txt will detect the collision, create a backup in your **Conflicts Folder**.
+- **Choose a Folder**: Select the folder on your Drive where you want the files to sync. You will be asked which version you want to prioritize on the initial sync.
+- **Conflict Resolution**: If a task is changed on your phone and Drive simultaneously, VoDo.txt will create a backup in your **Conflicts Folder**.
 - **Manual Sync**: You can force a sync by swiping down.
 
 ---
@@ -26,12 +22,12 @@ When you first launch VoDo.txt, you'll be greeted by the **Welcome Setup**.
 
 ### Adding a Task
 Tap the **[+]** button. The **Task Details** dialog will open:
-- **Auto-Population**: If you have active filters (like `@work` or `+Project`), the task field is automatically prepopulated with those tags.
-- **Smart Formatting**: If you don't remember the format for a particular element of the todo.txt protocol, the app will handle it for you by using the buttons below the Task field.
+- **Auto-Population**: If you have active filters, the task field is automatically prepopulated with priority, date, and tags.
+- **Smart Formatting**: You can type directly in the task field or use the buttons to add tags.
 - **Creation Date**: If enabled in Settings, the current date is added automatically.
 
 #### Natural Language Parsing
-When entering or editing a task, you can use natural language to set due dates. Simply type `due:` followed by a keyword, and it will fill in the correctly formatted date:
+When entering or editing a task, you can use natural language to set due dates. Type `due:` followed by a keyword, and it will fill in the correctly formatted date:
 - `due:today` -> `due:2026-09-08`
 - `due:tomorrow` -> `due:2026-09-09`
 - `due:monday` (or any day of the week) -> Snaps to the **next** occurrence of that day.
@@ -100,15 +96,15 @@ The **Filter Drawer** (swipe left).
 
 - **Ad-hoc Filtering**: Tap any Context (@) or Project (+) to instantly filter your list.
 - **Inversion**: Tap the "Invert" checkbox to see everything *except* the selected tags (e.g., "Show me everything that isn't @work").
-- **Saving Filters**: Create complex filter combinations and save them with a name.
-  - **Draft Logic**: When you click "Create New Filter," the dialog is prepopulated with whatever ad-hoc filters you currently have active.
+- **Saving Filters**: Create filter combinations and save them with a name.
+  - **Draft Logic**: When you click "Create New Filter," the dialog is prepopulated with whatever filters you currently have active.
 - **Closing**: Tap the "All Tasks" header or the "x" button next to the filter name while in task list view to clear any filters.
 - **Reordering**: Use the handles to reorder saved filters.
 - **Deleting**: Long-press a filter name to delete it.
 
 ---
 
-## The VoDo Extensions: Recurrence & Last
+## Recurrence & Last
 While VoDo.txt follows the `todo.txt` standard, it adds two tags to handle repeating tasks.
 
 ### 1. Recurrence (`r:`)
