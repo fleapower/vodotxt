@@ -353,14 +353,20 @@ class TodoListViewModel(
         _selectedSavedFilterId.value = null 
     }
 
-    fun cyclePriorityFilter() {
+    fun cyclePriorityFilter(activePriorities: List<Char>) {
         val currentPriorities = _currentFilter.value.selectedPriorities
-        val nextPriorities = when {
-            currentPriorities.isEmpty() -> listOf('A')
-            currentPriorities == listOf('A') -> listOf('B')
-            currentPriorities == listOf('B') -> listOf('C')
-            currentPriorities == listOf('C') -> listOf('D')
-            else -> emptyList()
+        val currentP = currentPriorities.firstOrNull()
+        val nextPriorities = if (activePriorities.isEmpty()) {
+            emptyList()
+        } else if (currentP == null) {
+            listOf(activePriorities.first())
+        } else {
+            val currentIndex = activePriorities.indexOf(currentP)
+            if (currentIndex != -1 && currentIndex + 1 < activePriorities.size) {
+                listOf(activePriorities[currentIndex + 1])
+            } else {
+                emptyList() // Cycle back to "All"
+            }
         }
         _currentFilter.value = _currentFilter.value.copy(selectedPriorities = nextPriorities)
         _selectedSavedFilterId.value = null

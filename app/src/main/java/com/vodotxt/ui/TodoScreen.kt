@@ -77,6 +77,50 @@ import kotlin.math.abs
 import kotlin.math.sqrt
 import kotlin.time.Duration.Companion.milliseconds
 
+fun getPriorityColor(p: Char?, activePriorities: List<Char>): Color {
+    if (p == null) return Color.Gray
+    val index = activePriorities.indexOf(p)
+    if (index == -1) {
+        if (activePriorities.isEmpty()) return Color(0xFFE53935)
+        if (p < activePriorities.first()) return Color(0xFFE53935)
+        if (p > activePriorities.last()) return Color(0xFF8E24AA)
+        val pos = activePriorities.indexOfFirst { it > p }
+        val frac = if (pos <= 0) 0f else pos.toFloat() / activePriorities.size
+        return interpolatePriorityColor(frac)
+    }
+    
+    if (activePriorities.size <= 1) return Color(0xFFE53935)
+    val fraction = index.toFloat() / (activePriorities.size - 1)
+    return interpolatePriorityColor(fraction)
+}
+
+private fun interpolatePriorityColor(fraction: Float): Color {
+    val f = fraction.coerceIn(0f, 1f)
+    return when {
+        f <= 0.33f -> {
+            val t = f / 0.33f
+            lerpColor(Color(0xFFE53935), Color(0xFFF57C00), t)
+        }
+        f <= 0.66f -> {
+            val t = (f - 0.33f) / 0.33f
+            lerpColor(Color(0xFFF57C00), Color(0xFF00897B), t)
+        }
+        else -> {
+            val t = (f - 0.66f) / 0.34f
+            lerpColor(Color(0xFF00897B), Color(0xFF8E24AA), t)
+        }
+    }
+}
+
+private fun lerpColor(c1: Color, c2: Color, t: Float): Color {
+    return Color(
+        red = c1.red + (c2.red - c1.red) * t,
+        green = c1.green + (c2.green - c1.green) * t,
+        blue = c1.blue + (c2.blue - c1.blue) * t,
+        alpha = 1.0f
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodoScreen(
@@ -85,6 +129,9 @@ fun TodoScreen(
 ) {
     val todos by viewModel.todos.collectAsState()
     val allTodos by viewModel.allTodos.collectAsState()
+    val activePriorities = remember(allTodos) {
+        allTodos.mapNotNull { it.priority }.distinct().sorted()
+    }
     val isSyncing by viewModel.isSyncing.collectAsState()
     val savedFilters by viewModel.savedFilters.collectAsState()
     val currentFilter by viewModel.currentFilter.collectAsState()
@@ -260,6 +307,7 @@ fun TodoScreen(
                         FilterDrawerContent(
                             savedFilters = savedFilters,
                             activeFilterId = selectedSavedFilterId,
+                            activePriorities = activePriorities,
                             onSelectFilter = {
                                 viewModel.setActiveFilter(it)
                                 scope.launch { drawerState.close() }
@@ -460,14 +508,8 @@ fun TodoScreen(
                                             }
                                         }
 
-                                        IconButton(onClick = { viewModel.cyclePriorityFilter() }) {
-                                            val color = when (priorityFilter) {
-                                                'A' -> Color(0xFFF44336)
-                                                'B' -> Color(0xFFFBC02D)
-                                                'C' -> Color(0xFF4CAF50)
-                                                'D' -> Color(0xFF9C27B0)
-                                                else -> Color.Gray
-                                            }
+                                        IconButton(onClick = { viewModel.cyclePriorityFilter(activePriorities) }) {
+                                            val color = if (priorityFilter != null) getPriorityColor(priorityFilter, activePriorities) else Color.Gray
                                             Box(
                                                 modifier = Modifier
                                                     .size(24.dp)
@@ -706,7 +748,8 @@ fun TodoScreen(
                                                 }
                                             },
                                             modifier = Modifier.offset { IntOffset(offsetX.value.roundToInt(), 0) },
-                                            isSelected = isSelected && selectionMode
+                                            isSelected = isSelected && selectionMode,
+                                            activePriorities = activePriorities
                                         )
                                     }
                                 }
@@ -724,6 +767,7 @@ fun TodoScreen(
             allContexts = allContexts,
             currentFilter = currentFilter,
             initialCreationDate = if (addCreationDate) LocalDate.now() else null,
+            activePriorities = activePriorities,
             onDismiss = { showAddDialog = false },
             onConfirm = { item ->
                 viewModel.addTodo(item.rawLine)
@@ -739,6 +783,7 @@ fun TodoScreen(
             allContexts = allContexts,
             currentFilter = currentFilter,
             initialCreationDate = null,
+            activePriorities = activePriorities,
             onDismiss = { editingTodo = null },
             onConfirm = { updatedItem ->
                 viewModel.updateTodo(updatedItem)
@@ -752,6 +797,7 @@ fun TodoScreen(
             initialFilter = currentFilter,
             allProjects = allProjects,
             allContexts = allContexts,
+            activePriorities = activePriorities,
             onDismiss = { showFilterDialog = false },
             onApply = { filter ->
                 viewModel.setActiveFilter(filter)
@@ -946,6 +992,7 @@ fun TodoScreen(
 fun FilterDrawerContent(
     savedFilters: List<TodoFilter>,
     activeFilterId: String?,
+    activePriorities: List<Char> = emptyList(),
     onSelectFilter: (TodoFilter?) -> Unit,
     onAddFilter: () -> Unit,
     onDeleteFilter: (TodoFilter) -> Unit,
@@ -1292,6 +1339,7 @@ fun CreateFilterDialog(
     initialFilter: TodoFilter,
     allProjects: List<String>,
     allContexts: List<String>,
+    activePriorities: List<Char> = emptyList(),
     onDismiss: () -> Unit,
     onApply: (TodoFilter) -> Unit,
     onSave: (TodoFilter) -> Unit
@@ -1601,7 +1649,8 @@ fun TodoRow(
     showCheckbox: Boolean,
     onToggle: () -> Unit,
     modifier: Modifier = Modifier,
-    isSelected: Boolean = false
+    isSelected: Boolean = false,
+    activePriorities: List<Char> = emptyList()
 ) {
     val uriHandler = LocalUriHandler.current
 
@@ -1610,7 +1659,7 @@ fun TodoRow(
         colors = if (isSelected) {
             CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
         } else {
-            CardDefaults.cardColors()
+            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         }
     ) {
         Row(
@@ -1628,13 +1677,7 @@ fun TodoRow(
                 Spacer(modifier = Modifier.width(4.dp))
             }
             Column {
-                val priorityColor = when (todo.priority) {
-                    'A' -> Color(0xFFF44336)
-                    'B' -> Color(0xFFFBC02D)
-                    'C' -> Color(0xFF4CAF50)
-                    'D' -> Color(0xFF9C27B0)
-                    else -> MaterialTheme.colorScheme.onSurface
-                }
+                val priorityColor = getPriorityColor(todo.priority, activePriorities)
 
                 val urlRegex = Regex("(https?://\\S+)")
                 val emailRegex = Regex("([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})")
@@ -1806,6 +1849,7 @@ fun AddEditTodoDialog(
     allContexts: List<String> = emptyList(),
     currentFilter: TodoFilter = TodoFilter(name = "Default"),
     initialCreationDate: LocalDate? = null,
+    activePriorities: List<Char> = emptyList(),
     onDismiss: () -> Unit,
     onConfirm: (TodoItem) -> Unit
 ) {
@@ -2039,14 +2083,15 @@ fun AddEditTodoDialog(
                                 keyboardController?.hide()
                             }
                         ) {
-                            listOf(null, 'A', 'B', 'C', 'D').forEach { p ->
-                                val color = when (p) {
-                                    'A' -> Color(0xFFF44336)
-                                    'B' -> Color(0xFFFBC02D)
-                                    'C' -> Color(0xFF4CAF50)
-                                    'D' -> Color(0xFF9C27B0)
-                                    else -> Color.Gray
-                                }
+                            val dialogPriorities = remember(activePriorities, selectedPriority) {
+                                val base = if (activePriorities.isNotEmpty()) activePriorities else listOf('A', 'B', 'C', 'D')
+                                val list = if (selectedPriority != null && !base.contains(selectedPriority)) {
+                                    (base + selectedPriority!!).sorted()
+                                } else base
+                                listOf(null) + list
+                            }
+                            dialogPriorities.forEach { p ->
+                                val color = getPriorityColor(p, activePriorities)
                                 DropdownMenuItem(
                                     text = { 
                                         Row(verticalAlignment = Alignment.CenterVertically) {

@@ -58,7 +58,8 @@ class QuickAddActivity : ComponentActivity() {
                     secondary = Color(0xFF4CAF50),
                     tertiary = Color(0xFF388E3C),
                     onPrimary = Color.Black,
-                    surface = Color(0xFF1C1B1F),
+                    background = Color(0xFF2E2D32),
+                    surface = Color.Black,
                     onSurface = Color.White,
                 )
             } else {
@@ -67,6 +68,7 @@ class QuickAddActivity : ComponentActivity() {
                     secondary = Color(0xFF388E3C),
                     tertiary = Color(0xFF81C784),
                     onPrimary = Color.White,
+                    background = Color(0xFFE4ECE4),
                     surface = Color.White,
                     onSurface = Color.Black,
                 )
@@ -83,6 +85,10 @@ class QuickAddActivity : ComponentActivity() {
                 }
             }
 
+            val activePriorities = remember(allTodos) {
+                allTodos.mapNotNull { it.priority }.distinct().sorted()
+            }
+
             MaterialTheme(colorScheme = colorScheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -94,6 +100,7 @@ class QuickAddActivity : ComponentActivity() {
                             allContexts = allContexts,
                             currentFilter = currentFilter,
                             initialCreationDate = if (addCreationDate) LocalDate.now() else null,
+                            activePriorities = activePriorities,
                             onDismiss = {
                                 finish()
                             }
