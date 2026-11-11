@@ -14,6 +14,7 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.horizontalDrag
 import androidx.compose.foundation.gestures.scrollBy
@@ -129,6 +130,7 @@ fun TodoScreen(
 ) {
     val todos by viewModel.todos.collectAsState()
     val allTodos by viewModel.allTodos.collectAsState()
+    val animatingOutIds by viewModel.animatingOutIds.collectAsState()
     val activePriorities = remember(allTodos) {
         allTodos.mapNotNull { it.priority }.distinct().sorted()
     }
@@ -165,6 +167,7 @@ fun TodoScreen(
     var showBulkPriorityDialog by rememberSaveable { mutableStateOf(value = false) }
     var showBulkTagDialog by rememberSaveable { mutableStateOf(value = false) }
     var showBulkDatePicker by rememberSaveable { mutableStateOf(value = false) }
+    var showClearDateConfirmation by rememberSaveable { mutableStateOf(value = false) }
     var showDeleteConfirmation by rememberSaveable { mutableStateOf(value = false) }
     var archivedCount by remember { mutableIntStateOf(0) }
     var showArchiveSuccess by remember { mutableStateOf(value = false) }
@@ -749,7 +752,8 @@ fun TodoScreen(
                                             },
                                             modifier = Modifier.offset { IntOffset(offsetX.value.roundToInt(), 0) },
                                             isSelected = isSelected && selectionMode,
-                                            activePriorities = activePriorities
+                                            activePriorities = activePriorities,
+                                            isAnimatingOut = animatingOutIds.contains(todo.id)
                                         )
                                     }
                                 }
@@ -831,10 +835,7 @@ fun TodoScreen(
             },
             dismissButton = {
                 TextButton(onClick = {
-                    viewModel.updateTodosDate(selectedIds, null)
-                    showBulkDatePicker = false
-                    selectionMode = false
-                    selectedIds = emptySet()
+                    showClearDateConfirmation = true
                 }) {
                     Text("Clear Date")
                 }
@@ -842,6 +843,30 @@ fun TodoScreen(
         ) {
             DatePicker(state = datePickerState)
         }
+    }
+
+    if (showClearDateConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showClearDateConfirmation = false },
+            title = { Text("Clear Dates") },
+            text = { Text("Are you sure you want to clear the dates from the selected tasks?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.updateTodosDate(selectedIds, null)
+                    showClearDateConfirmation = false
+                    showBulkDatePicker = false
+                    selectionMode = false
+                    selectedIds = emptySet()
+                }, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
+                    Text("Clear")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearDateConfirmation = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 
     if (showBulkPriorityDialog) {
@@ -1650,12 +1675,29 @@ fun TodoRow(
     onToggle: () -> Unit,
     modifier: Modifier = Modifier,
     isSelected: Boolean = false,
-    activePriorities: List<Char> = emptyList()
+    activePriorities: List<Char> = emptyList(),
+    isAnimatingOut: Boolean = false
 ) {
     val uriHandler = LocalUriHandler.current
+    val alphaAnim = remember { Animatable(1f) }
+    var localCompletedOverride by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isAnimatingOut) {
+        if (isAnimatingOut) {
+            localCompletedOverride = true
+            alphaAnim.animateTo(0f, animationSpec = tween(200))
+        } else {
+            alphaAnim.snapTo(1f)
+            localCompletedOverride = false
+        }
+    }
+
+    val effectiveCompleted = todo.completed || localCompletedOverride
 
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .graphicsLayer(alpha = alphaAnim.value),
         colors = if (isSelected) {
             CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
         } else {
@@ -1670,7 +1712,7 @@ fun TodoRow(
         ) {
             if (showCheckbox) {
                 Checkbox(
-                    checked = todo.completed,
+                    checked = effectiveCompleted,
                     onCheckedChange = { onToggle() },
                     modifier = Modifier.size(32.dp)
                 )
@@ -1687,9 +1729,9 @@ fun TodoRow(
                 val emailMatch = remember(todo.description) { emailRegex.find(todo.description) }
                 val phoneMatch = remember(todo.description) { phoneRegex.find(todo.description) }
 
-                val annotatedText = remember(todo, priorityColor, fontSize) {
+                val annotatedText = remember(todo, priorityColor, fontSize, effectiveCompleted) {
                     buildAnnotatedString {
-                        if (todo.completed) {
+                        if (effectiveCompleted) {
                             append("x ")
                             if (todo.completionDate != null) {
                                 withStyle(style = SpanStyle(fontSize = (fontSize - 4).sp, color = Color.Gray)) {
@@ -1720,18 +1762,18 @@ fun TodoRow(
                 Row(verticalAlignment = Alignment.Top) {
                     Text(
                         text = annotatedText,
-                        textDecoration = if (todo.completed) TextDecoration.LineThrough else null,
+                        textDecoration = if (effectiveCompleted) TextDecoration.LineThrough else null,
                         style = MaterialTheme.typography.bodyLarge.copy(
                             fontSize = fontSize.sp,
                             lineHeight = (fontSize * 1.2).sp,
-                            color = if (todo.completed) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface
+                            color = if (effectiveCompleted) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface
                         ),
                         modifier = Modifier.weight(1f)
                     )
 
                     // Action Icons Row - Pinned to right of description
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        val iconTint = if (todo.completed) 
+                        val iconTint = if (effectiveCompleted) 
                             MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f) 
                         else 
                             MaterialTheme.colorScheme.onSurface
@@ -2163,15 +2205,28 @@ fun AddEditTodoDialog(
                                 })
                             }
                             allContexts.forEach { c ->
+                                val currentList = contexts.split(" ").asSequence().filter { it.isNotBlank() }.toMutableList()
+                                val isSelected = currentList.contains(c)
                                 DropdownMenuItem(
-                                    text = { Text(c) },
-                                    onClick = {
-                                        val currentList = contexts.split(" ").asSequence().filter { it.isNotBlank() }.toMutableList()
-                                        if (!currentList.contains(c)) {
-                                            currentList.add(c)
-                                            contexts = currentList.joinToString(" ")
-                                            updateRawFromFields()
+                                    text = { 
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            if (isSelected) {
+                                                Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp))
+                                                Spacer(Modifier.width(4.dp))
+                                            } else {
+                                                Spacer(Modifier.width(20.dp))
+                                            }
+                                            Text(c)
                                         }
+                                    },
+                                    onClick = {
+                                        if (isSelected) {
+                                            currentList.remove(c)
+                                        } else {
+                                            currentList.add(c)
+                                        }
+                                        contexts = currentList.joinToString(" ")
+                                        updateRawFromFields()
                                         contextsExpanded = false
                                         dummyFocusRequester.requestFocus()
                                         keyboardController?.hide()
@@ -2207,15 +2262,28 @@ fun AddEditTodoDialog(
                                 })
                             }
                             allProjects.forEach { p ->
+                                val currentList = projects.split(" ").asSequence().filter { it.isNotBlank() }.toMutableList()
+                                val isSelected = currentList.contains(p)
                                 DropdownMenuItem(
-                                    text = { Text(p) },
-                                    onClick = {
-                                        val currentList = projects.split(" ").asSequence().filter { it.isNotBlank() }.toMutableList()
-                                        if (!currentList.contains(p)) {
-                                            currentList.add(p)
-                                            projects = currentList.joinToString(" ")
-                                            updateRawFromFields()
+                                    text = { 
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            if (isSelected) {
+                                                Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp))
+                                                Spacer(Modifier.width(4.dp))
+                                            } else {
+                                                Spacer(Modifier.width(20.dp))
+                                            }
+                                            Text(p)
                                         }
+                                    },
+                                    onClick = {
+                                        if (isSelected) {
+                                            currentList.remove(p)
+                                        } else {
+                                            currentList.add(p)
+                                        }
+                                        projects = currentList.joinToString(" ")
+                                        updateRawFromFields()
                                         projectsExpanded = false
                                         dummyFocusRequester.requestFocus()
                                         keyboardController?.hide()

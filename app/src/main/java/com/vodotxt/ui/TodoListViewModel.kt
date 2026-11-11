@@ -32,6 +32,7 @@ import com.vodotxt.data.RecurrenceCalculator
 import androidx.documentfile.provider.DocumentFile
 import android.net.Uri
 import android.content.Context
+import com.vodotxt.domain.CompletionFilter
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import java.io.File
@@ -65,6 +66,9 @@ class TodoListViewModel(
     private val _isSyncing = MutableStateFlow(value = false)
     val isSyncing: StateFlow<Boolean> = _isSyncing
 
+    private val _animatingOutIds = MutableStateFlow<Set<String>>(emptySet())
+    val animatingOutIds: StateFlow<Set<String>> = _animatingOutIds.asStateFlow()
+
     // Unified filter state - This is the single source of truth for all filtering
     private val _currentFilter = MutableStateFlow(TodoFilter(name = "", id = "transient"))
     val currentFilter: StateFlow<TodoFilter> = _currentFilter
@@ -82,7 +86,8 @@ class TodoListViewModel(
         _todos,
         _currentFilter,
         _searchQuery,
-    ) { todos, filter, query ->
+        _animatingOutIds,
+    ) { todos, filter, query, animatingIds ->
         val filtered = todos.filter { item ->
             val dateMatch = when (filter.dateFilter) {
                 DateFilterType.ALL -> true
@@ -118,7 +123,7 @@ class TodoListViewModel(
 
             val completionMatch = when (filter.completionFilter ?: com.vodotxt.domain.CompletionFilter.ALL) {
                 com.vodotxt.domain.CompletionFilter.ALL -> true
-                com.vodotxt.domain.CompletionFilter.INCOMPLETE -> !item.completed
+                CompletionFilter.INCOMPLETE -> !item.completed || animatingIds.contains(item.id)
                 com.vodotxt.domain.CompletionFilter.COMPLETED -> item.completed
             }
 
@@ -434,8 +439,21 @@ class TodoListViewModel(
     }
 
     fun toggleTodo(item: TodoItem) {
-        val updated = handleCompletion(item)
-        updateTodo(updated)
+        val becomingCompleted = !item.completed
+        val isHidden = _currentFilter.value.completionFilter == CompletionFilter.INCOMPLETE
+
+        if (becomingCompleted && isHidden) {
+            viewModelScope.launch {
+                _animatingOutIds.value = _animatingOutIds.value + item.id
+                delay(200)
+                _animatingOutIds.value = _animatingOutIds.value - item.id
+                val updated = handleCompletion(item)
+                updateTodo(updated)
+            }
+        } else {
+            val updated = handleCompletion(item)
+            updateTodo(updated)
+        }
     }
 
     fun postponeTodo(item: TodoItem) {
