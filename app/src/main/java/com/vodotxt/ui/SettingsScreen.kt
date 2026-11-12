@@ -495,6 +495,16 @@ fun SettingsScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = "Privacy Policy",
+                    color = MaterialTheme.colorScheme.primary,
+                    textDecoration = TextDecoration.Underline,
+                    modifier = Modifier.clickable {
+                        uriHandler.openUri("https://fleapower.github.io/vodotxt/privacy_policy")
+                    },
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
         }
     }
