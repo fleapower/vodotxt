@@ -35,9 +35,18 @@ class DriveServiceHelper(private val mDriveService: Drive) {
     }
 
     suspend fun readFile(fileId: String): String = withContext(Dispatchers.IO) {
-        val outputStream = ByteArrayOutputStream()
-        mDriveService.files().get(fileId).executeMediaAndDownloadTo(outputStream)
-        outputStream.toString()
+        try {
+            val meta = getFileMetadata(fileId)
+            val size = meta.size.toLong()
+            if (size <= 0L) {
+                return@withContext ""
+            }
+            val outputStream = ByteArrayOutputStream()
+            mDriveService.files().get(fileId).executeMediaAndDownloadTo(outputStream)
+            outputStream.toString()
+        } catch (_: Exception) {
+            ""
+        }
     }
 
     suspend fun saveFile(fileId: String, content: String) = withContext(Dispatchers.IO) {

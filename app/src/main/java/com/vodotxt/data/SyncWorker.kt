@@ -23,14 +23,14 @@ class SyncWorker(
         val settingsRepo = SettingsRepository.getInstance(applicationContext)
         val todoRepo = TodoRepository.getInstance(applicationContext)
         
-        val folderId = settingsRepo.driveFolderId.value ?: return Result.failure()
+        val folderId = settingsRepo.driveFolderId.value ?: return Result.success()
         val todoFileUri = settingsRepo.todoFileUri.value
         val archiveFileUri = settingsRepo.archiveFileUri.value
         
         val initialSyncMode = inputData.getString("initial_sync_mode")
 
         // 1. Authenticate
-        val account = GoogleSignIn.getLastSignedInAccount(applicationContext) ?: return Result.failure()
+        val account = GoogleSignIn.getLastSignedInAccount(applicationContext) ?: return Result.success()
         val credential = GoogleAccountCredential.usingOAuth2(
             applicationContext, Collections.singleton(DriveScopes.DRIVE)
         ).setSelectedAccount(account.account)

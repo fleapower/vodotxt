@@ -200,6 +200,7 @@ class TodoListViewModel(
 
     private fun triggerSync(mode: String? = null, delaySeconds: Long = 0) {
         if (!driveSyncEnabled.value) return
+        if (settingsRepository.driveFolderId.value.isNullOrBlank()) return
 
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
