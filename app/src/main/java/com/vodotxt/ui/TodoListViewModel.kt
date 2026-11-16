@@ -17,6 +17,7 @@ import com.google.gson.Gson
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 import androidx.work.Constraints
@@ -447,7 +448,7 @@ class TodoListViewModel(
         if (becomingCompleted && isHidden) {
             viewModelScope.launch {
                 _animatingOutIds.value = _animatingOutIds.value + item.id
-                delay(200)
+                delay(200.milliseconds)
                 _animatingOutIds.value = _animatingOutIds.value - item.id
                 val updated = handleCompletion(item)
                 updateTodo(updated)
