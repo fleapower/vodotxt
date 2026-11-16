@@ -2,6 +2,7 @@ package com.vodotxt.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -53,6 +54,9 @@ class SettingsRepository private constructor(context: Context) {
     private val _conflictFolderUri = MutableStateFlow(prefs.getString("conflict_folder_uri", null))
     val conflictFolderUri: StateFlow<String?> = _conflictFolderUri
 
+    private val _debugLoggingEnabled = MutableStateFlow(prefs.getBoolean("debug_logging_enabled", false))
+    val debugLoggingEnabled: StateFlow<Boolean> = _debugLoggingEnabled
+
     // Sync Conflict Info
     private val _syncConflictFile = MutableStateFlow(prefs.getString("sync_conflict_file", null))
     val syncConflictFile: StateFlow<String?> = _syncConflictFile
@@ -63,19 +67,19 @@ class SettingsRepository private constructor(context: Context) {
     // Sync Anchors: The hashes of the files at the moment of the last successful sync
     var anchorTodoLocalHash: String
         get() = prefs.getString("anchor_todo_local_hash", "") ?: ""
-        private set(value) = prefs.edit().putString("anchor_todo_local_hash", value).apply()
+        private set(value) = prefs.edit { putString("anchor_todo_local_hash", value) }
 
     var anchorTodoCloudHash: String
         get() = prefs.getString("anchor_todo_cloud_hash", "") ?: ""
-        private set(value) = prefs.edit().putString("anchor_todo_cloud_hash", value).apply()
+        private set(value) = prefs.edit { putString("anchor_todo_cloud_hash", value) }
 
     var anchorArchiveLocalHash: String
         get() = prefs.getString("anchor_archive_local_hash", "") ?: ""
-        private set(value) = prefs.edit().putString("anchor_archive_local_hash", value).apply()
+        private set(value) = prefs.edit { putString("anchor_archive_local_hash", value) }
 
     var anchorArchiveCloudHash: String
         get() = prefs.getString("anchor_archive_cloud_hash", "") ?: ""
-        private set(value) = prefs.edit().putString("anchor_archive_cloud_hash", value).apply()
+        private set(value) = prefs.edit { putString("anchor_archive_cloud_hash", value) }
 
     fun setTodoAnchors(localHash: String, cloudHash: String) {
         anchorTodoLocalHash = localHash
@@ -89,77 +93,88 @@ class SettingsRepository private constructor(context: Context) {
 
     fun setFontSize(size: Int) {
         _fontSize.value = size
-        prefs.edit().putInt("font_size", size).apply()
+        prefs.edit { putInt("font_size", size) }
     }
 
     fun setTheme(theme: AppTheme) {
         _theme.value = theme
-        prefs.edit().putString("theme", theme.name).apply()
+        prefs.edit { putString("theme", theme.name) }
     }
 
     fun setShowCheckboxes(show: Boolean) {
         _showCheckboxes.value = show
-        prefs.edit().putBoolean("show_checkboxes", show).apply()
+        prefs.edit { putBoolean("show_checkboxes", show) }
     }
 
     fun setTodoFileUri(uri: String?) {
         _todoFileUri.value = uri
-        prefs.edit().putString("todo_file_uri", uri).apply()
+        prefs.edit { putString("todo_file_uri", uri) }
     }
 
     fun setArchiveFileUri(uri: String?) {
         _archiveFileUri.value = uri
-        prefs.edit().putString("archive_file_uri", uri).apply()
+        prefs.edit { putString("archive_file_uri", uri) }
     }
 
     fun setDriveSyncEnabled(enabled: Boolean) {
         _driveSyncEnabled.value = enabled
-        prefs.edit().putBoolean("drive_sync_enabled", enabled).apply()
+        prefs.edit { putBoolean("drive_sync_enabled", enabled) }
     }
 
     fun setDriveFolder(id: String?, name: String?) {
         _driveFolderId.value = id
         _driveFolderName.value = name
-        prefs.edit().putString("drive_folder_id", id).putString("drive_folder_name", name).apply()
+        prefs.edit {
+            putString("drive_folder_id", id)
+            putString("drive_folder_name", name)
+        }
     }
 
     fun setLastFilterId(id: String?) {
         _lastFilterId.value = id
-        prefs.edit().putString("last_filter_id", id).apply()
+        prefs.edit { putString("last_filter_id", id) }
     }
 
     fun setSwipeRightAction(action: SwipeAction) {
         _swipeRightAction.value = action
-        prefs.edit().putString("swipe_right_action", action.name).apply()
+        prefs.edit { putString("swipe_right_action", action.name) }
     }
 
     fun setDoubleTapToComplete(enabled: Boolean) {
         _doubleTapToComplete.value = enabled
-        prefs.edit().putBoolean("double_tap_to_complete", enabled).apply()
+        prefs.edit { putBoolean("double_tap_to_complete", enabled) }
     }
 
     fun setKeepLastTag(enabled: Boolean) {
         _keepLastTag.value = enabled
-        prefs.edit().putBoolean("keep_last_tag", enabled).apply()
+        prefs.edit { putBoolean("keep_last_tag", enabled) }
+    }
+
+    fun setDebugLoggingEnabled(enabled: Boolean) {
+        _debugLoggingEnabled.value = enabled
+        prefs.edit { putBoolean("debug_logging_enabled", enabled) }
+        if (!enabled) {
+            DebugLogger.clear()
+        }
     }
 
     fun setAddCreationDate(enabled: Boolean) {
         _addCreationDate.value = enabled
-        prefs.edit().putBoolean("add_creation_date", enabled).apply()
+        prefs.edit { putBoolean("add_creation_date", enabled) }
     }
 
     fun setConflictFolderUri(uri: String?) {
         _conflictFolderUri.value = uri
-        prefs.edit().putString("conflict_folder_uri", uri).apply()
+        prefs.edit { putString("conflict_folder_uri", uri) }
     }
 
     fun setSyncConflict(fileName: String?, time: String?) {
         _syncConflictFile.value = fileName
         _syncConflictTime.value = time
-        prefs.edit()
-            .putString("sync_conflict_file", fileName)
-            .putString("sync_conflict_time", time)
-            .apply()
+        prefs.edit {
+            putString("sync_conflict_file", fileName)
+            putString("sync_conflict_time", time)
+        }
     }
 
     companion object {

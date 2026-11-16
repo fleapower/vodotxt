@@ -17,6 +17,7 @@ import com.google.gson.Gson
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 import androidx.work.Constraints
@@ -32,6 +33,7 @@ import com.vodotxt.data.RecurrenceCalculator
 import androidx.documentfile.provider.DocumentFile
 import android.net.Uri
 import android.content.Context
+import com.vodotxt.data.DebugLogger
 import com.vodotxt.domain.CompletionFilter
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -121,10 +123,10 @@ class TodoListViewModel(
             val priorityMatch = (filter.selectedPriorities.isEmpty()) ||
                     (item.priority != null && filter.selectedPriorities.contains(item.priority))
 
-            val completionMatch = when (filter.completionFilter ?: com.vodotxt.domain.CompletionFilter.ALL) {
-                com.vodotxt.domain.CompletionFilter.ALL -> true
+            val completionMatch = when (filter.completionFilter ?: CompletionFilter.ALL) {
+                CompletionFilter.ALL -> true
                 CompletionFilter.INCOMPLETE -> !item.completed || animatingIds.contains(item.id)
-                com.vodotxt.domain.CompletionFilter.COMPLETED -> item.completed
+                CompletionFilter.COMPLETED -> item.completed
             }
 
             val searchMatch = query.isEmpty() || item.description.contains(query, ignoreCase = true) ||
@@ -393,10 +395,10 @@ class TodoListViewModel(
     }
 
     fun cycleCompletionFilter() {
-        val nextFilter = when (_currentFilter.value.completionFilter ?: com.vodotxt.domain.CompletionFilter.ALL) {
-            com.vodotxt.domain.CompletionFilter.ALL -> com.vodotxt.domain.CompletionFilter.INCOMPLETE
-            com.vodotxt.domain.CompletionFilter.INCOMPLETE -> com.vodotxt.domain.CompletionFilter.COMPLETED
-            com.vodotxt.domain.CompletionFilter.COMPLETED -> com.vodotxt.domain.CompletionFilter.ALL
+        val nextFilter = when (_currentFilter.value.completionFilter ?: CompletionFilter.ALL) {
+            CompletionFilter.ALL -> CompletionFilter.INCOMPLETE
+            CompletionFilter.INCOMPLETE -> CompletionFilter.COMPLETED
+            CompletionFilter.COMPLETED -> CompletionFilter.ALL
         }
         _currentFilter.value = _currentFilter.value.copy(completionFilter = nextFilter)
         _selectedSavedFilterId.value = null
@@ -446,7 +448,7 @@ class TodoListViewModel(
         if (becomingCompleted && isHidden) {
             viewModelScope.launch {
                 _animatingOutIds.value = _animatingOutIds.value + item.id
-                delay(200)
+                delay(200.milliseconds)
                 _animatingOutIds.value = _animatingOutIds.value - item.id
                 val updated = handleCompletion(item)
                 updateTodo(updated)
@@ -675,6 +677,16 @@ class TodoListViewModel(
     fun setDriveSyncEnabled(enabled: Boolean) {
         settingsRepository.setDriveSyncEnabled(enabled)
         if (enabled) triggerSync(delaySeconds = 0)
+    }
+
+    val debugLoggingEnabled = settingsRepository.debugLoggingEnabled
+
+    fun setDebugLoggingEnabled(enabled: Boolean) {
+        settingsRepository.setDebugLoggingEnabled(enabled)
+    }
+
+    fun getDebugLogs(): String {
+        return DebugLogger.getAppLogs()
     }
 
     fun performInitialSync(useRemote: Boolean, folderId: String, folderName: String) {

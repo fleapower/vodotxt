@@ -17,9 +17,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import android.widget.Toast
 import com.vodotxt.data.AppTheme
 import com.vodotxt.data.SwipeAction
 import java.io.BufferedReader
@@ -451,6 +455,93 @@ fun SettingsScreen(
                     ) {
                         Text("Import Setup")
                     }
+                }
+            }
+
+            HorizontalDivider()
+
+            // Debugging & Logs Section
+            Column {
+                Text("Debugging & Logs", style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.height(8.dp))
+                val debugLoggingEnabled by viewModel.debugLoggingEnabled.collectAsState()
+                var showLogDialog by remember { mutableStateOf(false) }
+                @Suppress("DEPRECATION")
+                val clipboardManager = LocalClipboardManager.current
+                val context = LocalContext.current
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth().clickable { 
+                        viewModel.setDebugLoggingEnabled(!debugLoggingEnabled)
+                    }
+                ) {
+                    Checkbox(
+                        checked = debugLoggingEnabled,
+                        onCheckedChange = { viewModel.setDebugLoggingEnabled(it) }
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("Enable Debug Logging")
+                }
+
+                if (debugLoggingEnabled) {
+                    Spacer(Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = { showLogDialog = true },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("View Logs")
+                        }
+                        Button(
+                            onClick = {
+                                val logs = viewModel.getDebugLogs()
+                                clipboardManager.setText(AnnotatedString(logs))
+                                Toast.makeText(context, "Logs copied to clipboard", Toast.LENGTH_SHORT).show()
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Copy Logs")
+                        }
+                    }
+                }
+
+                if (showLogDialog) {
+                    val logsText = viewModel.getDebugLogs()
+                    AlertDialog(
+                        onDismissRequest = { showLogDialog = false },
+                        title = { Text("Debug Logs") },
+                        text = {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(300.dp)
+                                    .verticalScroll(rememberScrollState())
+                            ) {
+                                Text(
+                                    text = if (logsText.isBlank()) "No logs recorded yet." else logsText,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            }
+                        },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                clipboardManager.setText(AnnotatedString(logsText))
+                                Toast.makeText(context, "Logs copied to clipboard", Toast.LENGTH_SHORT).show()
+                            }) {
+                                Text("Copy")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showLogDialog = false }) {
+                                Text("Close")
+                            }
+                        }
+                    )
                 }
             }
 

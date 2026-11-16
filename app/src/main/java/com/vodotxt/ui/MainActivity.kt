@@ -87,6 +87,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun signInToGoogle() {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
@@ -217,7 +218,7 @@ fun SetupScreen(onSelectFolder: () -> Unit) {
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "To get started, please choose a folder where your task files will be stored. This makes them accessible to other apps and for syncing.",
+            text = "To get started, please choose a folder where your task files will be stored. This makes them accessible to other apps and for syncing. A vodo.txt subfolder will be created. To choose other files to use, go to the Settings -> Files.",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant
