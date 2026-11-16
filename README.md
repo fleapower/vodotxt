@@ -6,7 +6,7 @@ VoDo.txt was born from the end of development of *SimpleTask* and dissatisfactio
 ---
 
 ## Quick Start: Initial Setup
-When you first launch VoDo.txt, you'll be given a **Welcome Setup** screen. Click the button to choose a location on your device. VoDo.txt will automatically create a `vodo.txt/` subfolder and initialize your `todo.txt` and `done.txt` (archive) files. If you do not want to use these files, you can specifically select which files you would like to use.
+When you first launch VoDo.txt, you'll be given a **Welcome Setup** screen. Click the button to choose a location on your device. VoDo.txt will automatically create a `vodo.txt` subfolder and initialize your `todo.txt` and `done.txt` (archive) files. If you do not want to use these files, you can specifically select which files you would like to use in the "Files" section of settings.
 
 ---
 
@@ -25,6 +25,7 @@ Tap the **[+]** button. The **Task Details** dialog will open:
 - **Auto-Population**: If you have active filters, the task field is automatically prepopulated with priority, date, and tags.
 - **Smart Formatting**: You can type directly in the task field or use the buttons to add tags.
 - **Creation Date**: If enabled in Settings, the current date is added automatically.
+- **Dynamic Priorities, Contexts, and Projects**: The only priorities, contexts, and tags available in the pull down menus will be those currently in use. If you would like to create additional priorities, contexts, or projects, you will need to manually type them in the task field.
 
 #### Natural Language Parsing
 When entering or editing a task, you can use natural language to set due dates. Type `due:` followed by a keyword, and it will fill in the correctly formatted date:
