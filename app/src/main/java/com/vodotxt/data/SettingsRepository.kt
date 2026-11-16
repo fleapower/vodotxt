@@ -53,6 +53,9 @@ class SettingsRepository private constructor(context: Context) {
     private val _conflictFolderUri = MutableStateFlow(prefs.getString("conflict_folder_uri", null))
     val conflictFolderUri: StateFlow<String?> = _conflictFolderUri
 
+    private val _debugLoggingEnabled = MutableStateFlow(prefs.getBoolean("debug_logging_enabled", false))
+    val debugLoggingEnabled: StateFlow<Boolean> = _debugLoggingEnabled
+
     // Sync Conflict Info
     private val _syncConflictFile = MutableStateFlow(prefs.getString("sync_conflict_file", null))
     val syncConflictFile: StateFlow<String?> = _syncConflictFile
@@ -141,6 +144,14 @@ class SettingsRepository private constructor(context: Context) {
     fun setKeepLastTag(enabled: Boolean) {
         _keepLastTag.value = enabled
         prefs.edit().putBoolean("keep_last_tag", enabled).apply()
+    }
+
+    fun setDebugLoggingEnabled(enabled: Boolean) {
+        _debugLoggingEnabled.value = enabled
+        prefs.edit().putBoolean("debug_logging_enabled", enabled).apply()
+        if (!enabled) {
+            DebugLogger.clear()
+        }
     }
 
     fun setAddCreationDate(enabled: Boolean) {
