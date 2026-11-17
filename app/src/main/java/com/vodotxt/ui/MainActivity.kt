@@ -26,10 +26,7 @@ import com.vodotxt.data.FilterRepository
 import com.vodotxt.data.SettingsRepository
 import com.vodotxt.data.TodoRepository
 
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.Scope
-import com.google.api.services.drive.DriveScopes
+import android.accounts.AccountManager
 
 enum class AppScreen { TODO_LIST, SETTINGS }
 
@@ -72,8 +69,12 @@ class MainActivity : ComponentActivity() {
     }
 
     private val googleSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == RESULT_OK) {
-            viewModel.setDriveSyncEnabled(enabled = true)
+        if (result.resultCode == RESULT_OK && result.data != null) {
+            val accountName = result.data?.getStringExtra(AccountManager.KEY_ACCOUNT_NAME)
+            if (!accountName.isNullOrBlank()) {
+                viewModel.setGoogleAccountEmail(accountName)
+                viewModel.setDriveSyncEnabled(enabled = true)
+            }
         }
     }
 
@@ -89,12 +90,10 @@ class MainActivity : ComponentActivity() {
 
     @Suppress("DEPRECATION")
     private fun signInToGoogle() {
-        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestEmail()
-            .requestScopes(Scope(DriveScopes.DRIVE))
-            .build()
-        val client = GoogleSignIn.getClient(this, gso)
-        googleSignInLauncher.launch(client.signInIntent)
+        val intent = AccountManager.newChooseAccountIntent(
+            null, null, arrayOf("com.google"), false, null, null, null, null
+        )
+        googleSignInLauncher.launch(intent)
     }
 
     override fun onResume() {

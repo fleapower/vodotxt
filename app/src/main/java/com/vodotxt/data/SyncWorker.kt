@@ -1,12 +1,11 @@
 package com.vodotxt.data
 
 import android.content.Context
-import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
+import androidx.core.net.toUri
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
@@ -23,17 +22,18 @@ class SyncWorker(
         val settingsRepo = SettingsRepository.getInstance(applicationContext)
         val todoRepo = TodoRepository.getInstance(applicationContext)
         
-        val folderId = settingsRepo.driveFolderId.value ?: return Result.success()
         val todoFileUri = settingsRepo.todoFileUri.value
         val archiveFileUri = settingsRepo.archiveFileUri.value
         
         val initialSyncMode = inputData.getString("initial_sync_mode")
 
         // 1. Authenticate
-        val account = GoogleSignIn.getLastSignedInAccount(applicationContext) ?: return Result.success()
+        val accountName = settingsRepo.googleAccountEmail.value
+        if (accountName.isNullOrBlank()) return Result.success()
+
         val credential = GoogleAccountCredential.usingOAuth2(
-            applicationContext, Collections.singleton(DriveScopes.DRIVE)
-        ).setSelectedAccount(account.account)
+            applicationContext, Collections.singleton(DriveScopes.DRIVE_FILE)
+        ).setSelectedAccountName(accountName)
 
         val driveService = Drive.Builder(
             NetHttpTransport(),
@@ -42,6 +42,18 @@ class SyncWorker(
         ).setApplicationName("vodo.txt").build()
 
         val driveHelper = DriveServiceHelper(driveService)
+
+        // Ensure vodo.txt subfolder exists in root
+        var folderId = settingsRepo.driveFolderId.value
+        if (folderId.isNullOrBlank()) {
+            folderId = driveHelper.searchFile("vodo.txt", "root") 
+                ?: driveHelper.createFolder("vodo.txt", "root")
+            if (!folderId.isNullOrBlank()) {
+                settingsRepo.setDriveFolder(folderId, "vodo.txt")
+            } else {
+                return Result.success()
+            }
+        }
 
         try {
             // 2. Sync main todo file
@@ -78,8 +90,7 @@ class SyncWorker(
                 .build()
 
             return Result.success(outputData)
-        } catch (e: Exception) {
-            Log.e("SyncWorker", "Sync failed", e)
+        } catch (_: Exception) {
             return Result.retry()
         }
     }
@@ -87,7 +98,7 @@ class SyncWorker(
     private fun getFileNameFromUri(uriString: String?, default: String): String {
         if (uriString == null) return default
         return try {
-            val uri = Uri.parse(uriString)
+            val uri = uriString.toUri()
             val cursor = applicationContext.contentResolver.query(uri, null, null, null, null)
             cursor?.use {
                 if (it.moveToFirst()) {
@@ -95,7 +106,7 @@ class SyncWorker(
                     if (index != -1) it.getString(index) else default
                 } else default
             } ?: default
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             default
         }
     }
@@ -110,19 +121,40 @@ class SyncWorker(
         forceMode: String?,
         isArchive: Boolean
     ): Boolean {
-        val driveFileId = driveHelper.searchFile(fileName, folderId) ?: driveHelper.createFile(fileName, folderId)
+        val existingDriveId = driveHelper.searchFile(fileName, folderId)
+        val isNewDriveFile = existingDriveId == null
+        val driveFileId = existingDriveId ?: driveHelper.createFile(fileName, folderId)
         
         if (driveFileId != null) {
-            // 1. Get CURRENT CLOUD HASH
+            // 1. Get ANCHOR HASHES (from last successful sync)
+            val anchorLocalHash = if (isArchive) settingsRepo.anchorArchiveLocalHash else settingsRepo.anchorTodoLocalHash
+            val anchorCloudHash = if (isArchive) settingsRepo.anchorArchiveCloudHash else settingsRepo.anchorTodoCloudHash
+
+            // Initial Upload for new drive file or empty initial sync anchors
+            if (isNewDriveFile || (anchorLocalHash.isEmpty() && anchorCloudHash.isEmpty()) || forceMode == "LOCAL_WINS") {
+                Log.d("SyncWorker", "Initial upload for $fileName to Google Drive.")
+                val localContentList = todoRepo.loadTodos(localUri)
+                val localContent = localContentList.joinToString("\n") { TodoParser.toLine(it) }
+                
+                driveHelper.saveFile(driveFileId, localContent)
+                
+                val newLocalHash = todoRepo.getLocalHash(localUri)
+                val newCloudHash = driveHelper.getFileMetadata(driveFileId).md5Checksum ?: ""
+                
+                if (isArchive) {
+                    settingsRepo.setArchiveAnchors(newLocalHash, newCloudHash)
+                } else {
+                    settingsRepo.setTodoAnchors(newLocalHash, newCloudHash)
+                }
+                return true
+            }
+
+            // 2. Get CURRENT CLOUD HASH
             val remoteMeta = driveHelper.getFileMetadata(driveFileId)
             val currentCloudHash = remoteMeta.md5Checksum ?: ""
 
-            // 2. Get CURRENT LOCAL HASH
+            // 3. Get CURRENT LOCAL HASH
             val currentLocalHash = todoRepo.getLocalHash(localUri)
-
-            // 3. Get ANCHOR HASHES (from last successful sync)
-            val anchorLocalHash = if (isArchive) settingsRepo.anchorArchiveLocalHash else settingsRepo.anchorTodoLocalHash
-            val anchorCloudHash = if (isArchive) settingsRepo.anchorArchiveCloudHash else settingsRepo.anchorTodoCloudHash
 
             // 4. DETECT CHANGES
             val localChanged = currentLocalHash != anchorLocalHash
@@ -157,7 +189,7 @@ class SyncWorker(
                     }
                     return true
                 }
-            } else if (forceMode == "LOCAL_WINS" || (localChanged && !cloudChanged)) {
+            } else if (!cloudChanged) {
                 // Local wins: Upload
                 val localContentList = todoRepo.loadTodos(localUri)
                 val localContent = localContentList.joinToString("\n") { TodoParser.toLine(it) }
@@ -172,7 +204,7 @@ class SyncWorker(
                 } else {
                     settingsRepo.setTodoAnchors(currentLocalHash, newCloudHash)
                 }
-            } else if (localChanged && cloudChanged) {
+            } else {
                 // CONFLICT!
                 Log.w("SyncWorker", "CONFLICT in $fileName. Creating local backup.")
                 
@@ -193,7 +225,7 @@ class SyncWorker(
                     todoRepo.saveConflict(todos, conflictFolder, conflictName)
                 } else {
                     // Fallback to internal storage if no folder selected
-                    todoRepo.saveTodos(todos, "${localUri ?: applicationContext.filesDir.absolutePath + "/" + fileName}.conflict", ChangeOrigin.USER)
+                    todoRepo.saveTodos(todos, "${localUri ?: (applicationContext.filesDir.absolutePath + "/" + fileName)}.conflict", ChangeOrigin.USER)
                 }
             }
         }
