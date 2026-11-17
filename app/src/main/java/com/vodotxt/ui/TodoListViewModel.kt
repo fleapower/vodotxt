@@ -202,7 +202,6 @@ class TodoListViewModel(
 
     private fun triggerSync(mode: String? = null, delaySeconds: Long = 0) {
         if (!driveSyncEnabled.value) return
-        if (settingsRepository.driveFolderId.value.isNullOrBlank()) return
 
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -677,6 +676,10 @@ class TodoListViewModel(
     fun setDriveSyncEnabled(enabled: Boolean) {
         settingsRepository.setDriveSyncEnabled(enabled)
         if (enabled) triggerSync(delaySeconds = 0)
+    }
+
+    fun setGoogleAccountEmail(email: String?) {
+        settingsRepository.setGoogleAccountEmail(email)
     }
 
     val debugLoggingEnabled = settingsRepository.debugLoggingEnabled

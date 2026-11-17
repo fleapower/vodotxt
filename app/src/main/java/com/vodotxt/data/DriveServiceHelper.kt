@@ -3,7 +3,6 @@ package com.vodotxt.data
 import com.google.api.client.http.InputStreamContent
 import com.google.api.services.drive.Drive
 import com.google.api.services.drive.model.File
-import com.google.api.services.drive.model.FileList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayInputStream
@@ -16,6 +15,17 @@ class DriveServiceHelper(private val mDriveService: Drive) {
             .setName(name)
             .setMimeType("text/plain")
         if (parentId != null) {
+            metadata.parents = listOf(parentId)
+        }
+        val googleFile = mDriveService.files().create(metadata).execute()
+        googleFile.id
+    }
+
+    suspend fun createFolder(name: String, parentId: String? = "root"): String? = withContext(Dispatchers.IO) {
+        val metadata = File()
+            .setName(name)
+            .setMimeType("application/vnd.google-apps.folder")
+        if (parentId != null && parentId != "root") {
             metadata.parents = listOf(parentId)
         }
         val googleFile = mDriveService.files().create(metadata).execute()
@@ -56,16 +66,6 @@ class DriveServiceHelper(private val mDriveService: Drive) {
             ByteArrayInputStream(content.toByteArray())
         )
         mDriveService.files().update(fileId, metadata, contentStream).execute()
-    }
-
-    suspend fun listFolders(parentId: String? = "root"): List<File> = withContext(Dispatchers.IO) {
-        val query = "mimeType = 'application/vnd.google-apps.folder' and trashed = false and '$parentId' in parents"
-        val result = mDriveService.files().list()
-            .setQ(query)
-            .setSpaces("drive")
-            .setFields("files(id, name)")
-            .execute()
-        result.files ?: emptyList()
     }
 
     suspend fun getFileMetadata(fileId: String): File = withContext(Dispatchers.IO) {

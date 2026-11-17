@@ -30,6 +30,9 @@ class SettingsRepository private constructor(context: Context) {
     private val _driveSyncEnabled = MutableStateFlow(prefs.getBoolean("drive_sync_enabled", false))
     val driveSyncEnabled: StateFlow<Boolean> = _driveSyncEnabled
 
+    private val _googleAccountEmail = MutableStateFlow(prefs.getString("google_account_email", null))
+    val googleAccountEmail: StateFlow<String?> = _googleAccountEmail
+
     private val _driveFolderId = MutableStateFlow(prefs.getString("drive_folder_id", null))
     val driveFolderId: StateFlow<String?> = _driveFolderId
 
@@ -119,6 +122,11 @@ class SettingsRepository private constructor(context: Context) {
     fun setDriveSyncEnabled(enabled: Boolean) {
         _driveSyncEnabled.value = enabled
         prefs.edit { putBoolean("drive_sync_enabled", enabled) }
+    }
+
+    fun setGoogleAccountEmail(email: String?) {
+        _googleAccountEmail.value = email
+        prefs.edit { putString("google_account_email", email) }
     }
 
     fun setDriveFolder(id: String?, name: String?) {

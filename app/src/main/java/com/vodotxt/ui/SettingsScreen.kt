@@ -97,7 +97,6 @@ fun SettingsScreen(
 
     var fontSizeText by remember { mutableStateOf(fontSize.toString()) }
     
-    var showFolderPicker by remember { mutableStateOf(false) }
     var showConflictDialog by remember { mutableStateOf(false) }
     var selectedFolderInfo by remember { mutableStateOf<Pair<String, String>?>(null) }
     
@@ -158,16 +157,10 @@ fun SettingsScreen(
                     val folderName by viewModel.driveFolderName.collectAsState()
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        text = "Folder: ${folderName ?: "None selected"}",
+                        text = "Sync Folder: ${folderName ?: "vodo.txt"} (Google Drive)",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Button(
-                        onClick = { showFolderPicker = true },
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
-                    ) {
-                        Text("Change Drive Folder")
-                    }
                 }
             }
 
@@ -598,17 +591,6 @@ fun SettingsScreen(
                 )
             }
         }
-    }
-
-    if (showFolderPicker) {
-        DriveFolderPicker(
-            onFolderSelected = { id, name ->
-                selectedFolderInfo = id to name
-                showFolderPicker = false
-                showConflictDialog = true
-            },
-            onDismiss = { showFolderPicker = false }
-        )
     }
 
     if (showConflictDialog && selectedFolderInfo != null) {
