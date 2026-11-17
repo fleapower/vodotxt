@@ -12,9 +12,10 @@ When you first launch VoDo.txt, you'll be given a **Welcome Setup** screen. Clic
 
 ## Google Drive Sync
 - **Enable Sync**: In **Settings**, toggle "Enable Google Drive Sync."
-- **Choose a Folder**: Select the folder on your Drive where you want the files to sync. You will be asked which version you want to prioritize on the initial sync.
-- **Conflict Resolution**: If a task is changed on your phone and Drive simultaneously, VoDo.txt will create a backup in your **Conflicts Folder**.
+- **Vodo.txt folder**: A "vodo.txt" folder will be created in the root of your Google Drive. You can always move this folder to a new location.
+- **Conflict Resolution**: If a task is changed on your phone and Drive simultaneously, VoDo.txt will warn you and create a backup in your **Conflicts Folder**.
 - **Manual Sync**: You can force a sync by swiping down.
+> **Note**: If you have a pre-existing todo.txt file, you can either put it on your Android and select it as the todo.txt file, or you can directly edit the text file on Google Drive using a Workspace text editor and paste your file into its contents.
 
 ---
 
@@ -98,7 +99,7 @@ The **Filter Drawer** (swipe left).
 - **Ad-hoc Filtering**: Tap any Context (@) or Project (+) to instantly filter your list.
 - **Inversion**: Tap the "Invert" checkbox to see everything *except* the selected tags (e.g., "Show me everything that isn't @work").
 - **Saving Filters**: Create filter combinations and save them with a name.
-  - **Draft Logic**: When you click "Create New Filter," the dialog is prepopulated with whatever filters you currently have active.
+- **Draft Logic**: When you click "Create New Filter," the dialog is prepopulated with whatever filters you currently have active.
 - **Closing**: Tap the "All Tasks" header or the "x" button next to the filter name while in task list view to clear any filters.
 - **Reordering**: Use the handles to reorder saved filters.
 - **Deleting**: Long-press a filter name to delete it.
