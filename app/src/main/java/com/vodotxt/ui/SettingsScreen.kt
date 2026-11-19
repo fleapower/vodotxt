@@ -96,6 +96,9 @@ fun SettingsScreen(
     }
 
     var fontSizeText by remember { mutableStateOf(fontSize.toString()) }
+    LaunchedEffect(fontSize) {
+        fontSizeText = fontSize.toString()
+    }
     
     var showConflictDialog by remember { mutableStateOf(false) }
     var selectedFolderInfo by remember { mutableStateOf<Pair<String, String>?>(null) }
@@ -585,7 +588,7 @@ fun SettingsScreen(
                     color = MaterialTheme.colorScheme.primary,
                     textDecoration = TextDecoration.Underline,
                     modifier = Modifier.clickable {
-                        uriHandler.openUri("https://fleapower.github.io/vodotxt/privacy_policy")
+                        uriHandler.openUri("https://www.jamesbaca.org/vodotxt/privacy_policy.html")
                     },
                     style = MaterialTheme.typography.bodyMedium
                 )

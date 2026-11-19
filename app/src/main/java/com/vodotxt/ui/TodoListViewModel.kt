@@ -708,6 +708,7 @@ class TodoListViewModel(
             theme = theme.value,
             showCheckboxes = showCheckboxes.value,
             swipeRightAction = swipeRightAction.value,
+            doubleTapToComplete = doubleTapToComplete.value,
             savedFilters = savedFilters.value,
             invertAdHocProjects = _currentFilter.value.invertProjects,
             invertAdHocContexts = _currentFilter.value.invertContexts,
@@ -722,13 +723,11 @@ class TodoListViewModel(
             try {
                 val config = Gson().fromJson(json, AppConfig::class.java) ?: return@launch
 
-                // Disable Drive sync on import as requested
-                setDriveSyncEnabled(false)
-
                 config.fontSize?.let { setFontSize(it) }
                 config.theme?.let { setTheme(it) }
                 config.showCheckboxes?.let { setShowCheckboxes(it) }
                 config.swipeRightAction?.let { setSwipeRightAction(it) }
+                config.doubleTapToComplete?.let { setDoubleTapToComplete(it) }
                 
                 config.invertAdHocProjects?.let { setInvertProjects(it) }
                 config.invertAdHocContexts?.let { setInvertContexts(it) }

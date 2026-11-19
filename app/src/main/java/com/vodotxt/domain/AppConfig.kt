@@ -8,6 +8,7 @@ data class AppConfig(
     val theme: AppTheme?,
     val showCheckboxes: Boolean?,
     val swipeRightAction: SwipeAction?,
+    val doubleTapToComplete: Boolean? = false,
     val savedFilters: List<TodoFilter>?,
     val invertAdHocProjects: Boolean? = false,
     val invertAdHocContexts: Boolean? = false,
