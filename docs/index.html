@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>fleapower — Projects</title>
+  <style>
+    :root {
+      --bg: #f6f8fa;
+      --card-bg: #ffffff;
+      --text: #1f2328;
+      --muted: #656d76;
+      --border: #d0d7de;
+      --accent: #0969da;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0d1117;
+        --card-bg: #161b22;
+        --text: #e6edf3;
+        --muted: #848d97;
+        --border: #30363d;
+        --accent: #58a6ff;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 4rem 1.5rem;
+    }
+
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 2.5rem;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    .subtitle a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .subtitle a:hover {
+      text-decoration: underline;
+    }
+
+    .projects {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .card {
+      display: block;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.15s ease, transform 0.15s ease;
+    }
+
+    .card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.35rem;
+    }
+
+    .card h2 {
+      font-size: 1.2rem;
+      color: var(--accent);
+    }
+
+    .arrow {
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+
+    .card p {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    footer {
+      margin-top: 3rem;
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+
+    footer a {
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>fleapower</h1>
+      <p class="subtitle">
+        Open-source projects on <a href="https://github.com/fleapower" target="_blank" rel="noopener">GitHub</a>
+      </p>
+    </header>
+
+    <main class="projects">
+      <a class="card" href="https://github.com/fleapower/vodotxt" target="_blank" rel="noopener">
+        <div class="card-header">
+          <h2>VoDo.txt</h2>
+          <span class="arrow">&rarr;</span>
+        </div>
+        <p>View the VoDo.txt repository, source code, and documentation on GitHub.</p>
+      </a>
+
+      <a class="card" href="https://github.com/fleapower/GoDo.txt" target="_blank" rel="noopener">
+        <div class="card-header">
+          <h2>GoDo.txt</h2>
+          <span class="arrow">&rarr;</span>
+        </div>
+        <p>View the GoDo.txt repository, source code, and documentation on GitHub.</p>
+      </a>
+    </main>
+
+    <footer>
+      <p>Hosted on GitHub Pages &middot; <a href="https://github.com/fleapower" target="_blank" rel="noopener">@fleapower</a></p>
+    </footer>
+  </div>
+</body>
+</html>
