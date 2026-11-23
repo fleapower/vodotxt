@@ -194,4 +194,115 @@
     <h2>Interaction &amp; Gestures</h2>
     <!-- ![Main Menu Legend](VoDotxt_main_legend.jpg) -->
     <p><img src="screenshots/VoDotxt_main_legend.jpg" alt="Selection Menu Legend" width="500"></p>
-    <h3>
+    <h3>Main Menu Button Legend (Left to Right)</h3>
+    <ol>
+      <li><strong>Settings</strong>: Configure app behavior, themes, and file locations.</li>
+      <li><strong>Status Filter</strong>: Cycle through showing All tasks, Incomplete only, or Completed only.</li>
+      <li><strong>Date Filter</strong>: Cycle through All tasks, Today's tasks, or Tomorrow's tasks.</li>
+      <li><strong>Priority Filter</strong>: Cycle through filtering by specific priorities (A, B, C, D) or clear the filter.</li>
+      <li><strong>Sort</strong>: Cycle the list order between File Order, Due Date, or Priority.</li>
+      <li><strong>Add Task</strong>: Add task in Task Details dialog.</li>
+    </ol>
+    <hr />
+    <!--![Selection Menu Legend](VoDtxt_select_legend.jpg)-->
+    <p><img src="screenshots/VoDtxt_select_legend.jpg" alt="Selection Menu Legend" width="500"></p>
+    <h3>Selection Mode Button Legend (Left to Right)</h3>
+    <p><em>Selection mode is entered by long-pressing a task.</em></p>
+    <ol>
+      <li><strong>Settings</strong>: Configure app behavior, themes, and file locations.</li>
+      <li><strong>Bulk Delete</strong>: Permanently delete all selected tasks.</li>
+      <li><strong>Select All</strong>: Select all tasks currently visible in the list.</li>
+      <li><strong>Bulk Priority</strong>: Assign or clear the priority for all selected tasks.</li>
+      <li><strong>Bulk Change Date</strong>: Set or clear the due date for all selected tasks.</li>
+      <li><strong>Bulk Contexts/Projects</strong>: Add or remove tags across all selected tasks.</li>
+      <li><strong>Bulk Toggle Complete</strong>: Mark all selected tasks as complete (or incomplete).</li>
+    </ol>
+    <hr />
+    <ul>
+      <li><strong>Swipe Right</strong>: Quickly complete or postpone a task (configurable in Settings).</li>
+      <li><strong>Swipe Left</strong>: Open the <strong>Filter Drawer</strong>.</li>
+      <li><strong>Drag and Drop</strong>: In <strong>File Sort</strong> mode, long-press and hold, then drag to physically reorder your tasks.</li>
+    </ul>
+    <hr />
+    <h2>Filtering</h2>
+    <p>The <strong>Filter Drawer</strong> (swipe left).</p>
+    <ul>
+      <li><strong>Ad-hoc Filtering</strong>: Tap any Context (@) or Project (+) to instantly filter your list.</li>
+      <li><strong>Inversion</strong>: Tap the "Invert" checkbox to see everything <em>except</em> the selected tags (e.g., "Show me everything that isn't @work").</li>
+      <li><strong>Saving Filters</strong>: Create filter combinations and save them with a name.</li>
+      <li><strong>Draft Logic</strong>: When you click "Create New Filter," the dialog is prepopulated with whatever filters you currently have active.</li>
+      <li><strong>Closing</strong>: Tap the "All Tasks" header or the "x" button next to the filter name while in task list view to clear any filters.</li>
+      <li><strong>Reordering</strong>: Use the handles to reorder saved filters.</li>
+      <li><strong>Deleting</strong>: Long-press a filter name to delete it.</li>
+    </ul>
+    <hr />
+    <h2>Recurrence &amp; Last</h2>
+    <p>While VoDo.txt follows the <code>todo.txt</code> standard, it adds two tags to handle repeating tasks.</p>
+    <h3>1. Recurrence (<code>r:</code>)</h3>
+    <p>The rule for recurrence is simple: <strong>Where is the letter?</strong></p>
+    <table>
+      <thead>
+        <tr>
+          <th style="text-align: left;">Syntax</th>
+          <th style="text-align: left;">Meaning</th>
+          <th style="text-align: left;">Usable Letters</th>
+          <th style="text-align: left;">Example</th>
+          <th style="text-align: left;">Read as...</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="text-align: left;"><strong>Letter First</strong></td>
+          <td style="text-align: left;">On a specific day</td>
+          <td style="text-align: left;">W, M</td>
+          <td style="text-align: left;"><code>r:w02</code></td>
+          <td style="text-align: left;">"Weekly on the 2nd day (Monday)"</td>
+        </tr>
+        <tr>
+          <td style="text-align: left;"><strong>Letter Last</strong></td>
+          <td style="text-align: left;">Every X units</td>
+          <td style="text-align: left;">D, W, M, Y</td>
+          <td style="text-align: left;"><code>r:03w</code></td>
+          <td style="text-align: left;">"Recur every 3 weeks"</td>
+        </tr>
+        <tr>
+          <td style="text-align: left;"><strong>Annual</strong></td>
+          <td style="text-align: left;">Every year</td>
+          <td style="text-align: left;">Y</td>
+          <td style="text-align: left;"><code>r:y0304</code></td>
+          <td style="text-align: left;">"Every March 4th"</td>
+        </tr>
+      </tbody>
+    </table>
+    <blockquote>
+      <p><strong>Formatting</strong>: In the recurrence string, the numeric part is always <strong>two digits</strong> (e.g., <code>01</code>, <code>03</code>, <code>15</code>), except when performing a yearly recurrence on a specific date (<code>Annual</code>), which requires <strong>four digits</strong> (MMDD format).</p>
+      <p>NOTE: Recurrence days do not shift. If you have <code>r:w02</code> (Monday) and postpone the task to Tuesday, the <em>next</em> occurrence will still correctly fall on a Monday.</p>
+    </blockquote>
+    <h3>2. The Last Tag (<code>last:</code>)</h3>
+    <p>Whenever a recurring task is completed, VoDo.txt automatically adds a <code>last:YYYY-MM-DD</code> tag. This keeps a record of exactly when you last performed that action. This can be disabled in Settings.</p>
+    <blockquote>
+      <p>NOTE: After disabling last tags in Settings, existing last tags will be removed as each individual recurring task is completed.</p>
+    </blockquote>
+    <hr />
+    <h2>Settings Reference</h2>
+    <ul>
+      <li><strong>Appearance</strong>: Customize font size, themes (Light/Dark/System), and toggle checkboxes.</li>
+      <li><strong>Gestures</strong>: Choose if a right-swipe completes or postpones a task.</li>
+      <li><strong>Protocol Options</strong>: Toggle "Auto-Creation Date" or choose to "Maintain Last Tag."</li>
+      <li><strong>Archiving</strong>: One-tap to move all completed tasks into your <code>done.txt</code> file.</li>
+      <li><strong>Backup/Restore</strong>: Export your entire app configuration (including all saved filters) to a JSON file.</li>
+    </ul>
+    <hr />
+    <p><a href="https://github.com/fleapower/vodotxt">GitHub Repository</a></p>
+  </main>
+
+  <footer>
+    <p>&copy; <span id="current-year"></span> James Baca. All rights reserved.</p>
+  </footer>
+
+  <script>
+    document.getElementById('current-year').textContent = new Date().getFullYear();
+  </script>
+
+</body>
+</html>
