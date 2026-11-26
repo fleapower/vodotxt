@@ -1685,7 +1685,7 @@ fun TodoRow(
     LaunchedEffect(isAnimatingOut) {
         if (isAnimatingOut) {
             localCompletedOverride = true
-            alphaAnim.animateTo(0f, animationSpec = tween(200))
+            alphaAnim.animateTo(0f, animationSpec = tween(600))
         } else {
             alphaAnim.snapTo(1f)
             localCompletedOverride = false

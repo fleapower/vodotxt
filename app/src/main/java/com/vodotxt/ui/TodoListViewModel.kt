@@ -447,7 +447,7 @@ class TodoListViewModel(
         if (becomingCompleted && isHidden) {
             viewModelScope.launch {
                 _animatingOutIds.value = _animatingOutIds.value + item.id
-                delay(200.milliseconds)
+                delay(600.milliseconds)
                 _animatingOutIds.value = _animatingOutIds.value - item.id
                 val updated = handleCompletion(item)
                 updateTodo(updated)
@@ -601,12 +601,15 @@ class TodoListViewModel(
                 if (folder == null) return@launch
 
                 // 2. Create or find todo.txt
-                val todoFile = folder.findFile("todo.txt") ?: folder.createFile("text/plain", "todo.txt")
+                val existingTodoFile = folder.findFile("todo.txt")
+                val isNewTodoFile = existingTodoFile == null
+                val todoFile = existingTodoFile ?: folder.createFile("text/plain", "todo.txt")
                 
                 // 3. Create or find done.txt
                 val doneFile = folder.findFile("done.txt") ?: folder.createFile("text/plain", "done.txt")
                 
                 if (todoFile != null && doneFile != null) {
+                    var contentWritten = false
                     // 4. Migration: If internal file has content, copy it to the new external file
                     val internalFile = File(context.filesDir, "todo.txt")
                     if (internalFile.exists()) {
@@ -615,16 +618,26 @@ class TodoListViewModel(
                             context.contentResolver.openOutputStream(todoFile.uri)?.use { 
                                 it.write(content.toByteArray())
                             }
+                            contentWritten = true
                         }
                         internalFile.delete()
                     }
 
-                    // 5. Save URIs to settings
+                    // 5. Initial welcome task for brand-new setup
+                    if (isNewTodoFile && !contentWritten) {
+                        val today = LocalDate.now().toString()
+                        val initialTask = "(A) Read VoDo.txt Help https://www.jamesbaca.org/vodotxt/ due:$today\n"
+                        context.contentResolver.openOutputStream(todoFile.uri)?.use {
+                            it.write(initialTask.toByteArray())
+                        }
+                    }
+
+                    // 6. Save URIs to settings
                     settingsRepository.setTodoFileUri(todoFile.uri.toString())
                     settingsRepository.setArchiveFileUri(doneFile.uri.toString())
                     settingsRepository.setConflictFolderUri(folder.uri.toString())
                     
-                    // 6. Refresh
+                    // 7. Refresh
                     refreshTodos()
                 }
             } catch (e: Exception) {
