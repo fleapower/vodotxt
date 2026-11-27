@@ -133,20 +133,7 @@ class SyncWorker(
             // Initial Upload for new drive file or empty initial sync anchors
             if (isNewDriveFile || (anchorLocalHash.isEmpty() && anchorCloudHash.isEmpty()) || forceMode == "LOCAL_WINS") {
                 Log.d("SyncWorker", "Initial upload for $fileName to Google Drive.")
-                val localContentList = todoRepo.loadTodos(localUri)
-                val localContent = localContentList.joinToString("\n") { TodoParser.toLine(it) }
-                
-                driveHelper.saveFile(driveFileId, localContent)
-                
-                val newLocalHash = todoRepo.getLocalHash(localUri)
-                val newCloudHash = driveHelper.getFileMetadata(driveFileId).md5Checksum ?: ""
-                
-                if (isArchive) {
-                    settingsRepo.setArchiveAnchors(newLocalHash, newCloudHash)
-                } else {
-                    settingsRepo.setTodoAnchors(newLocalHash, newCloudHash)
-                }
-                return true
+                return uploadLocalFile(localUri, driveFileId, isArchive, todoRepo, settingsRepo, driveHelper)
             }
 
             // 2. Get CURRENT CLOUD HASH
@@ -191,19 +178,7 @@ class SyncWorker(
                 }
             } else if (!cloudChanged) {
                 // Local wins: Upload
-                val localContentList = todoRepo.loadTodos(localUri)
-                val localContent = localContentList.joinToString("\n") { TodoParser.toLine(it) }
-                
-                driveHelper.saveFile(driveFileId, localContent)
-                
-                // Get the new hash from Google
-                val newCloudHash = driveHelper.getFileMetadata(driveFileId).md5Checksum ?: currentCloudHash
-                
-                if (isArchive) {
-                    settingsRepo.setArchiveAnchors(currentLocalHash, newCloudHash)
-                } else {
-                    settingsRepo.setTodoAnchors(currentLocalHash, newCloudHash)
-                }
+                return uploadLocalFile(localUri, driveFileId, isArchive, todoRepo, settingsRepo, driveHelper, currentCloudHash)
             } else {
                 // CONFLICT!
                 Log.w("SyncWorker", "CONFLICT in $fileName. Creating local backup.")
@@ -230,5 +205,29 @@ class SyncWorker(
             }
         }
         return false
+    }
+
+    private suspend fun uploadLocalFile(
+        localUri: String?,
+        driveFileId: String,
+        isArchive: Boolean,
+        todoRepo: TodoRepository,
+        settingsRepo: SettingsRepository,
+        driveHelper: DriveServiceHelper,
+        fallbackCloudHash: String = ""
+    ): Boolean {
+        val localContentList = todoRepo.loadTodos(localUri)
+        val localContent = localContentList.joinToString("\n") { TodoParser.toLine(it) }
+        driveHelper.saveFile(driveFileId, localContent)
+        
+        val newLocalHash = todoRepo.getLocalHash(localUri)
+        val newCloudHash = driveHelper.getFileMetadata(driveFileId).md5Checksum ?: fallbackCloudHash
+        
+        if (isArchive) {
+            settingsRepo.setArchiveAnchors(newLocalHash, newCloudHash)
+        } else {
+            settingsRepo.setTodoAnchors(newLocalHash, newCloudHash)
+        }
+        return true
     }
 }

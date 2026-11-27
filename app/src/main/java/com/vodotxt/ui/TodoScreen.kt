@@ -214,16 +214,17 @@ fun TodoScreen(
         if (draggedItemId.value != null) {
             while (true) {
                 val pointerY = lastPointerY
-                if ((pointerY != null) && hasMovedDuringDrag) {
-                    val threshold = 60f
+                if (pointerY != null && hasMovedDuringDrag) {
+                    val threshold = 100f
                     val columnHeight = lazyListState.layoutInfo.viewportSize.height.toFloat()
                     if (columnHeight > 100f) {
                         var scrollDelta = 0f
-                        // Only scroll if the finger is actually near the viewport edges and moving towards that edge
-                        if ((pointerY < threshold) && (pointerY < dragStartPointerY - 5f)) {
-                            scrollDelta = -10f // Slower, more controlled scroll
-                        } else if ((pointerY > columnHeight - threshold) && (pointerY > dragStartPointerY + 5f)) {
-                            scrollDelta = 10f
+                        if (pointerY < threshold) {
+                            val dist = threshold - pointerY
+                            scrollDelta = -(dist * 0.35f).coerceIn(4f, 40f)
+                        } else if (pointerY > columnHeight - threshold) {
+                            val dist = pointerY - (columnHeight - threshold)
+                            scrollDelta = (dist * 0.35f).coerceIn(4f, 40f)
                         }
                         
                         if (scrollDelta != 0f) {
@@ -236,21 +237,24 @@ fun TodoScreen(
                         }
                     }
                 }
-                delay(20.milliseconds) // Slightly slower update for stability
+                delay(16.milliseconds)
             }
         }
     }
 
     // Reorder/Swap logic
     var lastSwapTime by remember { mutableLongStateOf(0L) }
-    LaunchedEffect(draggedItemId.value, lastPointerY, todos) {
+    LaunchedEffect(draggedItemId.value, lastPointerY, lazyListState.firstVisibleItemIndex, lazyListState.firstVisibleItemScrollOffset, todos) {
         val id = draggedItemId.value ?: return@LaunchedEffect
-        val pointerY = lastPointerY ?: return@LaunchedEffect
+        val rawPointerY = lastPointerY ?: return@LaunchedEffect
         if (sortMode != SortMode.FILE) return@LaunchedEffect
         
         // Prevent rapid-fire swaps (feedback loop)
         val currentTime = System.currentTimeMillis()
-        if (currentTime - lastSwapTime < 150) return@LaunchedEffect
+        if (currentTime - lastSwapTime < 25) return@LaunchedEffect
+        
+        val columnHeight = lazyListState.layoutInfo.viewportSize.height.toFloat()
+        val pointerY = rawPointerY.coerceIn(0f, columnHeight)
         
         val visibleItems = lazyListState.layoutInfo.visibleItemsInfo
         val currentIndex = todos.indexOfFirst { it.id == id }
@@ -263,9 +267,6 @@ fun TodoScreen(
             if (item.key == id) return@firstOrNull false
 
             val itemCenter = item.offset + item.size / 2f
-            val isNeighbor = taskIndex == currentIndex - 1 || taskIndex == currentIndex + 1
-            if (!isNeighbor) return@firstOrNull false
-
             if (currentIndex < taskIndex) {
                 pointerY > itemCenter
             } else {
@@ -274,17 +275,12 @@ fun TodoScreen(
         }
         
         if (targetItem != null) {
-            val taskIndex = targetItem.index - 1
-            val isFirstVisible = targetItem.index == lazyListState.firstVisibleItemIndex
-            val isMovingDown = taskIndex > currentIndex
-            
-            lastSwapTime = currentTime
-            viewModel.moveTodo(id, targetItem.key as String)
-            
-            if (isFirstVisible && isMovingDown) {
-                lazyListState.scrollBy(targetItem.size.toFloat())
-            } else if (targetItem.index == lazyListState.firstVisibleItemIndex && !isMovingDown) {
-                lazyListState.scrollBy(-targetItem.size.toFloat())
+            val targetTaskIndex = targetItem.index - 1
+            val nextIndex = if (targetTaskIndex > currentIndex) currentIndex + 1 else currentIndex - 1
+            if (nextIndex in todos.indices) {
+                val nextItemKey = todos[nextIndex].id
+                lastSwapTime = currentTime
+                viewModel.moveTodo(id, nextItemKey)
             }
         }
     }
@@ -567,7 +563,55 @@ fun TodoScreen(
                         ) {
                             LazyColumn(
                                 state = lazyListState,
-                                modifier = Modifier.fillMaxSize(),
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .pointerInput(sortMode) {
+                                        if (sortMode != SortMode.FILE) return@pointerInput
+                                        detectDragGesturesAfterLongPress(
+                                            onDragStart = { offset ->
+                                                val item = lazyListState.layoutInfo.visibleItemsInfo.find { visibleItem ->
+                                                    visibleItem.index > 0 && offset.y >= visibleItem.offset && offset.y <= (visibleItem.offset + visibleItem.size)
+                                                }
+                                                if (item != null) {
+                                                    draggedItemId.value = item.key as String
+                                                    dragInitialPointerOffsetWithinItem = offset.y - item.offset
+                                                    dragStartPointerY = offset.y
+                                                    lastPointerY = offset.y
+                                                    hasMovedDuringDrag = false
+                                                }
+                                            },
+                                            onDrag = { change, dragAmount ->
+                                                change.consume()
+                                                lastPointerY = (lastPointerY ?: 0f) + dragAmount.y
+                                                if (abs(dragAmount.y) > 2f) {
+                                                    hasMovedDuringDrag = true
+                                                }
+                                            },
+                                            onDragEnd = {
+                                                val id = draggedItemId.value
+                                                if (id != null) {
+                                                    if (!hasMovedDuringDrag) {
+                                                        if (!selectionMode) {
+                                                            selectionMode = true
+                                                            selectedIds = setOf(id)
+                                                        }
+                                                    } else {
+                                                        viewModel.saveCurrentTodos()
+                                                    }
+                                                }
+                                                draggedItemId.value = null
+                                                lastPointerY = null
+                                            },
+                                            onDragCancel = {
+                                                val id = draggedItemId.value
+                                                if (id != null && hasMovedDuringDrag) {
+                                                    viewModel.saveCurrentTodos()
+                                                }
+                                                draggedItemId.value = null
+                                                lastPointerY = null
+                                            }
+                                        )
+                                    },
                                 contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
                                 verticalArrangement = Arrangement.spacedBy(2.dp)
                             ) {
@@ -596,50 +640,8 @@ fun TodoScreen(
                                                 scaleY = if (isDragging) 1.05f else 1f
                                                 alpha = if (isDragging) 0.9f else 1f
                                             }
-                                            .pointerInput(todo.id, sortMode) {
-                                                detectDragGesturesAfterLongPress(
-                                                    onDragStart = { offset ->
-                                                        val item = lazyListState.layoutInfo.visibleItemsInfo.find { it.key == todo.id }
-                                                        if (item != null) {
-                                                            draggedItemId.value = todo.id
-                                                            dragInitialPointerOffsetWithinItem = offset.y
-                                                            dragStartPointerY = item.offset.toFloat() + offset.y
-                                                            lastPointerY = item.offset.toFloat() + offset.y
-                                                            hasMovedDuringDrag = false
-                                                        }
-                                                    },
-                                                    onDrag = { change, dragAmount ->
-                                                        change.consume()
-                                                        if (sortMode == SortMode.FILE) {
-                                                            lastPointerY = (lastPointerY ?: 0f) + dragAmount.y
-                                                        }
-                                                        if (abs(dragAmount.y) > 2f) {
-                                                            hasMovedDuringDrag = true
-                                                        }
-                                                    },
-                                                    onDragEnd = {
-                                                        val id = draggedItemId.value
-                                                        if (id != null) {
-                                                            if (!hasMovedDuringDrag) {
-                                                                // Selection only happens if released without dragging
-                                                                if (!selectionMode) {
-                                                                    selectionMode = true
-                                                                    selectedIds = setOf(id)
-                                                                }
-                                                            } else if (sortMode == SortMode.FILE) {
-                                                                viewModel.requestSync()
-                                                            }
-                                                        }
-                                                        draggedItemId.value = null
-                                                        lastPointerY = null
-                                                    },
-                                                    onDragCancel = {
-                                                        draggedItemId.value = null
-                                                        lastPointerY = null
-                                                    }
-                                                )
-                                            }
-                                            .pointerInput(todo, selectionMode, doubleTapToCompleteSetting, swipeActionSetting) {
+                                            .pointerInput(todo.id, isDragging, selectionMode, doubleTapToCompleteSetting, swipeActionSetting) {
+                                                if (isDragging) return@pointerInput
                                                 awaitPointerEventScope {
                                                     while (true) {
                                                         val down = awaitFirstDown()

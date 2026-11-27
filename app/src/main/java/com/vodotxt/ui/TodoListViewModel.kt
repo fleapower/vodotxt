@@ -49,6 +49,8 @@ class TodoListViewModel(
     private val _todos = MutableStateFlow<List<TodoItem>>(emptyList())
     val allTodos: StateFlow<List<TodoItem>> = _todos.asStateFlow()
 
+    private fun serializeItem(item: TodoItem): TodoItem = item.copy(rawLine = TodoParser.toLine(item))
+
 
     val fontSize = settingsRepository.fontSize
     val theme = settingsRepository.theme
@@ -413,8 +415,14 @@ class TodoListViewModel(
                 val item = current.removeAt(fromIndex)
                 current.add(toIndex, item)
                 _todos.value = current
-                repository.saveTodos(current, settingsRepository.todoFileUri.value)
             }
+        }
+    }
+
+    fun saveCurrentTodos() {
+        viewModelScope.launch {
+            repository.saveTodos(_todos.value, settingsRepository.todoFileUri.value)
+            scheduleSync()
         }
     }
 
@@ -467,7 +475,7 @@ class TodoListViewModel(
         newMetadata["due"] = nextDate.toString()
 
         val updated = item.copy(metadata = newMetadata)
-        updateTodo(updated.copy(rawLine = TodoParser.toLine(updated)))
+        updateTodo(serializeItem(updated))
     }
 
     fun updateTodosDate(ids: Set<String>, date: String?) {
@@ -481,7 +489,7 @@ class TodoListViewModel(
                     val newMetadata = item.metadata.toMutableMap()
                     if (date != null) newMetadata["due"] = date else newMetadata.remove("due")
                     val newItem = item.copy(metadata = newMetadata)
-                    current[index] = newItem.copy(rawLine = TodoParser.toLine(newItem))
+                    current[index] = serializeItem(newItem)
                     changed = true
                 }
             }
@@ -501,7 +509,7 @@ class TodoListViewModel(
                 if (index != -1) {
                     val item = current[index]
                     val newItem = item.copy(priority = priority)
-                    current[index] = newItem.copy(rawLine = TodoParser.toLine(newItem))
+                    current[index] = serializeItem(newItem)
                     changed = true
                 }
             }
@@ -525,7 +533,7 @@ class TodoListViewModel(
                     
                     if (newContexts != item.contexts || newProjects != item.projects) {
                         val newItem = item.copy(contexts = newContexts, projects = newProjects)
-                        current[index] = newItem.copy(rawLine = TodoParser.toLine(newItem))
+                        current[index] = serializeItem(newItem)
                         changed = true
                     }
                 }
@@ -787,7 +795,7 @@ class TodoListViewModel(
                 completionDate = if (becomingCompleted) today else null
             )
         }
-        return updatedItem.copy(rawLine = TodoParser.toLine(updatedItem))
+        return serializeItem(updatedItem)
     }
 
     class Factory(

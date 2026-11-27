@@ -78,7 +78,10 @@ fun SettingsScreen(
                         writer.write(viewModel.exportConfigJson())
                     }
                 }
-            } catch (_: Exception) {}
+                Toast.makeText(context, "Setup exported successfully", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Toast.makeText(context, "Export failed: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -91,7 +94,10 @@ fun SettingsScreen(
                     val reader = BufferedReader(InputStreamReader(inputStream))
                     viewModel.importConfigJson(reader.readText())
                 }
-            } catch (_: Exception) {}
+                Toast.makeText(context, "Setup imported successfully", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Toast.makeText(context, "Import failed: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -99,9 +105,6 @@ fun SettingsScreen(
     LaunchedEffect(fontSize) {
         fontSizeText = fontSize.toString()
     }
-    
-    var showConflictDialog by remember { mutableStateOf(false) }
-    var selectedFolderInfo by remember { mutableStateOf<Pair<String, String>?>(null) }
     
     var archivedCount by remember { mutableIntStateOf(0) }
     var showArchiveSuccess by remember { mutableStateOf(false) }
@@ -594,30 +597,6 @@ fun SettingsScreen(
                 )
             }
         }
-    }
-
-    if (showConflictDialog && selectedFolderInfo != null) {
-        AlertDialog(
-            onDismissRequest = { showConflictDialog = false },
-            title = { Text("Initial Sync") },
-            text = { Text("How would you like to handle the first sync with this folder?") },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.performInitialSync(useRemote = true, selectedFolderInfo!!.first, selectedFolderInfo!!.second)
-                    showConflictDialog = false
-                }) {
-                    Text("Use Drive Version")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    viewModel.performInitialSync(useRemote = false, selectedFolderInfo!!.first, selectedFolderInfo!!.second)
-                    showConflictDialog = false
-                }) {
-                    Text("Upload Local Version")
-                }
-            }
-        )
     }
 
     if (showArchiveSuccess) {
