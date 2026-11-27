@@ -521,7 +521,7 @@ fun SettingsScreen(
                                     .verticalScroll(rememberScrollState())
                             ) {
                                 Text(
-                                    text = if (logsText.isBlank()) "No logs recorded yet." else logsText,
+                                    text = logsText.ifBlank { "No logs recorded yet." },
                                     style = MaterialTheme.typography.bodySmall,
                                     fontFamily = FontFamily.Monospace
                                 )
